@@ -21,7 +21,21 @@ public class MovieEntity {
 
     private String description;
 
+    private String language;
+
+    private String duration;
+
+    private String releaseDate;
+
+    private String trailerUrl;
+
+    private String casts;
+
+    private String director;
+
     @ManyToOne
     private GenreEntity genre;
+
+    private  boolean isCurrentlyStreaming;
 
 }

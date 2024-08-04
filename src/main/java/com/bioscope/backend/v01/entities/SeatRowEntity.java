@@ -1,6 +1,5 @@
 package com.bioscope.backend.v01.entities;
 
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -8,23 +7,18 @@ import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
-
+import java.util.List;
 @Entity
 @Getter
 @Setter
-
-public class GenreEntity {
+public class SeatRowEntity {
 
     @Id
-    private long genreId;
-
-    private String interestName;
-
-    @ManyToOne
-    private UserEntity user;
+    private Long rowId;
 
     @OneToMany
-    private HashSet<MovieEntity> movies;
+    private List<SeatEntity> seats;
 
+    @ManyToOne
+    private SeatingArrangementEntity seatingArrangement;
 }

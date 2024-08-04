@@ -23,7 +23,6 @@ public class UserEntity {
 
     private String password;
 
-    private String role;
 
     private String firstName;
 
@@ -37,5 +36,6 @@ public class UserEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<GenreEntity> interests;
 
-
+    @OneToMany
+    private List<MovieEntity> watchedMovies;
 }
