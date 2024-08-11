@@ -14,8 +14,8 @@ import java.util.UUID;
 public class MovieEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private UUID movieID;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private UUID movieId = UUID.randomUUID();
 
     private String title;
 

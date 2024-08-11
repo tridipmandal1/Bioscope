@@ -54,15 +54,7 @@ public class GenreServiceImpl implements GenreService {
 
     }
 
-    @Override
-    public List<GenreDto> getGenresByMovie(UUID movieId) {
-        return List.of();
-    }
 
-    @Override
-    public GenreDto getGenreById(Long genreId) {
-        return null;
-    }
 
     @Override
     public List<MovieDto> getMoviesByGenre(Long genreId) {

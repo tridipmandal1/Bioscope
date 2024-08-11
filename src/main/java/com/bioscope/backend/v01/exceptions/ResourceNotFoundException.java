@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ResourceNotFoundException extends RuntimeException {
 
-    String message;
+   private String message;
 
     public ResourceNotFoundException(String resourceName, String fieldName, String fieldValue) {
         this.message =

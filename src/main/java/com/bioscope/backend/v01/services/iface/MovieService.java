@@ -8,10 +8,11 @@ import java.util.UUID;
 public interface MovieService {
 
     MovieDto getMovieById(UUID movieId);
-    MovieDto getMovieByTitle(String title);
+    List<MovieDto> getMovieByTitle(String title);
     List<MovieDto> getMoviesByLanguage(String language);
     List<MovieDto> getMoviesByGenreName(String genreName);
-    List<MovieDto> getMoviesByDirector(String director);
     List<MovieDto> getMoviesByCast(String cast);
-    List<MovieDto> getMoviesByReleaseYear(String releaseYear);
+    MovieDto addMovie(MovieDto movieDto);
+    void deleteMovie(MovieDto movieDto);
+    MovieDto updateMovie(MovieDto movieDto);
 }

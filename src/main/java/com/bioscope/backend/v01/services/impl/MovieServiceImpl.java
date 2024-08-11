@@ -3,6 +3,7 @@ package com.bioscope.backend.v01.services.impl;
 import com.bioscope.backend.v01.configs.ModelMapperConfiguration;
 import com.bioscope.backend.v01.entities.MovieEntity;
 import com.bioscope.backend.v01.entities.UserEntity;
+import com.bioscope.backend.v01.exceptions.AlreadyExistsException;
 import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
 import com.bioscope.backend.v01.payloads.MovieDto;
 import com.bioscope.backend.v01.payloads.UserDto;
@@ -10,6 +11,7 @@ import com.bioscope.backend.v01.repos.MovieRepository;
 import com.bioscope.backend.v01.services.iface.GenreService;
 import com.bioscope.backend.v01.services.iface.MovieService;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +26,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MovieServiceImpl implements MovieService {
 
+    private final ModelMapper modelMapper;
     MovieRepository movieRepository;
     ModelMapperConfiguration modelMapperConfiguration;
     GenreService genreService;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository,ModelMapperConfiguration modelMapperConfiguration,
-                            GenreService genreService) {
+    public MovieServiceImpl(MovieRepository movieRepository, ModelMapperConfiguration modelMapperConfiguration,
+                            GenreService genreService, ModelMapper modelMapper) {
         this.movieRepository = movieRepository;
         this.modelMapperConfiguration = modelMapperConfiguration;
         this.genreService = genreService;
-
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -50,12 +53,14 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public MovieDto getMovieByTitle(String title) {
-        MovieEntity movieFound =  movieRepository.getMovieByTitle(title);
-        if(Objects.isNull(movieFound)){
+    public List<MovieDto> getMovieByTitle(String title) {
+        List<MovieEntity> moviesFound =  movieRepository.getMovieByTitle(title);
+        if(Objects.isNull(moviesFound)){
             throw new ResourceNotFoundException("movie","title",title);
         }
-        return modelMapperConfiguration.modelMapper().map(movieFound, MovieDto.class);
+
+        return moviesFound.stream().map(movieEntity -> modelMapperConfiguration.modelMapper()
+                .map(movieEntity,MovieDto.class)).toList();
     }
 
     @Override
@@ -76,18 +81,43 @@ public class MovieServiceImpl implements MovieService {
        return genreService.getMoviesByGenreName(genreName);
     }
 
-    @Override
-    public List<MovieDto> getMoviesByDirector(String director) {
-        return List.of();
-    }
+
 
     @Override
     public List<MovieDto> getMoviesByCast(String cast) {
-        return List.of();
+        List<MovieEntity> movieEntities = movieRepository.getMovieEntitiesByCasts(cast);
+        if(movieEntities.isEmpty()){
+            throw new ResourceNotFoundException("Movie","cast",cast);
+        }
+        return movieEntities.stream().map(movieEntity ->
+                modelMapperConfiguration.modelMapper().map(movieEntity,MovieDto.class)).toList();
     }
 
     @Override
-    public List<MovieDto> getMoviesByReleaseYear(String releaseYear) {
-        return List.of();
+    public MovieDto addMovie(MovieDto movieDto) {
+       List<MovieEntity> moviesFound = movieRepository.getMovieByTitle(movieDto.getTitle());
+       if(
+                moviesFound.stream().anyMatch(movieEntity -> movieEntity.getTitle().equals(movieDto.getTitle())) &&
+                        moviesFound.stream().anyMatch(movieEntity -> movieEntity.getReleaseDate().equals(movieDto.getReleaseDate()) )
+         ){
+             throw new AlreadyExistsException("Movie","title",movieDto.getTitle());
+         }
+
+          MovieEntity movieToAdd = modelMapper.map(movieDto,MovieEntity.class);
+          movieRepository.save(movieToAdd);
+          return modelMapperConfiguration.modelMapper().map(movieToAdd,MovieDto.class);
+
+
     }
+
+    @Override
+    public void deleteMovie(MovieDto movieDto) {
+
+    }
+
+    @Override
+    public MovieDto updateMovie(MovieDto movieDto) {
+        return null;
+    }
+
 }
