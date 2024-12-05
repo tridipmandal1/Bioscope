@@ -1,13 +1,9 @@
 package com.bioscope.backend.v01.entities;
 
-import com.bioscope.backend.v01.enums.SeatCategory;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.HashSet;
 import java.util.UUID;
 
 @Entity
@@ -16,17 +12,22 @@ import java.util.UUID;
 public class SeatingArrangementEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID arrangement_id;
 
-    @OneToMany
-    private HashSet<SeatEntity> seats;
+    private String arrangementType;
 
-    @OneToMany
-    private List<SeatRowEntity> seatArrangement;
+    @OneToMany(mappedBy = "seatingArrangement")
+    private List<SeatRowEntity> seatRow;
 
-    @OneToOne
+    @OneToOne(mappedBy = "seatingArrangement")
     private ScreenEntity screen;
 
 
+    private Integer capacity;
+
+    private Integer bookedSeats;
+
+    private Double price;
 
 }

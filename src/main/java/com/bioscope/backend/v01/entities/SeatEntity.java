@@ -1,8 +1,6 @@
 package com.bioscope.backend.v01.entities;
 import com.bioscope.backend.v01.enums.SeatCategory;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.UUID;
@@ -13,15 +11,22 @@ import java.util.UUID;
 public class SeatEntity {
 
     @Id
-    private long seatNumber;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
+    private Integer seatNumber;
+
+    @Enumerated(EnumType.STRING)
     private SeatCategory seatCategory;
-
-    private boolean isBooked;
+    /**
+     * -1 - Not-available
+     * 0 - Not-booked
+     * 1 - Booked
+     */
+    private int bookingStatus = -1;
 
     @ManyToOne
+    @JoinColumn(name = "row_id")
     private SeatRowEntity seatRowEntity;
-
-
 
 }

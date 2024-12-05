@@ -14,25 +14,28 @@ import java.util.UUID;
 public class ShowEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID show_id;
 
     @OneToOne
-    private EventHostEntity eventHost;
-
-    private String showName;
-
-    @OneToOne
+    @JoinColumn(name = "movie_id")
     private MovieEntity movie;
+
+    private String showType;
+
+    private String showDescription;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private String showDate;
 
     @JsonFormat(pattern = "HH:mm")
     private LocalTime showTime;
 
-    @OneToOne
-    private SeatingArrangementEntity seatingArrangement;
+    @JsonFormat(pattern = "HH:mm")
+    private String showDuration;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "screen_id")
     private ScreenEntity screen;
-
 
 }

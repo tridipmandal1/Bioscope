@@ -1,4 +1,4 @@
-package com.bioscope.backend.v01.payloads;
+package com.bioscope.backend.v01.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,10 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class ApiResponse {
     private String message;
+    private boolean status;
 
-    private boolean success;
 }

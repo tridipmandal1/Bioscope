@@ -1,9 +1,6 @@
 package com.bioscope.backend.v01.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,25 +11,22 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@Table(name = "hosts")
 public class EventHostEntity {
 
     @Id
     private UUID host_id;
 
-    private String host_name;
+    private String name;
 
     @Email
-    private String host_email;
+    private String email;
 
     private String password;
 
     private  String location;
 
-    @OneToMany
-    private List<ShowEntity> shows;
-
-    @OneToMany
+    @OneToMany(mappedBy = "eventHost")
     private List<ScreenEntity> screens;
-
 
 }

@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.UUID;
 
-public interface ShowRepository extends JpaRepository<ShowEntity, UUID>, JpaSpecificationExecutor<ShowEntity> {
+public interface ShowRepository extends JpaRepository<ShowEntity, UUID> {
 }

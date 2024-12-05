@@ -1,30 +1,34 @@
 package com.bioscope.backend.v01.entities;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
-import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Getter
 @Setter
-
+@Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Table(name = "genres")
 public class GenreEntity {
 
     @Id
-    private long genreId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID genreId;
 
-    private String interestName;
 
-    @ManyToOne
-    private UserEntity user;
+    private String genreName;
 
-    @OneToMany
-    private HashSet<MovieEntity> movies;
+
+    @ManyToMany(mappedBy = "interests", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    private Set<UserEntity>  users;
+
+    @OneToMany(mappedBy = "genre")
+    private List<MovieEntity> movies;
 
 }

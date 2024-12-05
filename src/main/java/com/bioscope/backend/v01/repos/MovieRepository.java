@@ -10,12 +10,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.UUID;
 
-public interface MovieRepository extends JpaRepository<MovieEntity, UUID>,
-        JpaSpecificationExecutor<MovieEntity> {
+public interface MovieRepository extends JpaRepository<MovieEntity, UUID> {
 
-
-    @Query(value = "SELECT * FROM movies WHERE movieId = :movieId",nativeQuery = true)
-    MovieEntity getMovieById(UUID movieId);
 
     @Query(value = "SELECT * FROM movies WHERE title = :title",nativeQuery = true)
     List<MovieEntity> getMovieByTitle(String title);

@@ -1,7 +1,7 @@
 package com.bioscope.backend.v01.handler;
 
 import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
-import com.bioscope.backend.v01.payloads.ApiResponse;
+import com.bioscope.backend.v01.models.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
