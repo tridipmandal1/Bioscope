@@ -12,7 +12,7 @@ const UserActions = () => {
         <span>Login</span>
       </button>
       <button className="px-4 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
-        Sign Up
+        Login/Sign Up
       </button>
     </div>
   );

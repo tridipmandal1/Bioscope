@@ -4,9 +4,10 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import "swiper/css/autoplay";
 
 // Import required Swiper modules
-import { Pagination, Navigation } from "swiper/modules";
+import { Pagination, Navigation, Autoplay } from "swiper/modules";
 
 export default function App() {
   return (
@@ -19,7 +20,11 @@ export default function App() {
           clickable: true,
         }}
         navigation={true}
-        modules={[Pagination, Navigation]}
+        autoplay={{
+          delay: 5000, // Delay in milliseconds (5 seconds)
+          disableOnInteraction: false, // Keeps autoplay running even after user interaction
+        }}
+        modules={[Pagination, Navigation, Autoplay]}
         className="w-full h-80 mx-auto"
       >
         <SwiperSlide>
