@@ -3,6 +3,7 @@ import React from 'react'
  import Navbar from './components/Navbar/Navbar'
 // import { Slider } from '@mui/material';
 import Slider from './components/Body/Slider'
+
 function App() {
   return (
     <>
@@ -19,6 +20,7 @@ function App() {
         <p className='items-center text-center text-white'>We are Comming Soooon!!!</p>
       </div>
       <Slider />
+    
     </>
   );
 }
