@@ -3,6 +3,9 @@ import React from 'react'
  import Navbar from './components/Navbar/Navbar'
 // import { Slider } from '@mui/material';
 import Slider from './components/Body/Slider'
+import MovieRecommendations from './components/Body/Movierecomention'; 
+import Footer from './components/Footer/Footer';
+
 
 function App() {
   return (
@@ -17,10 +20,14 @@ function App() {
       </div> */}
       </div>
       <div className="w-full h-6 bg-slate-500  ">
-        <p className='items-center text-center text-white'>We are Comming Soooon!!!</p>
+        <p className="items-center text-center text-white">
+          We are Comming Soooon!!!
+        </p>
       </div>
       <Slider />
-    
+
+      <MovieRecommendations />
+      <Footer />
     </>
   );
 }
