@@ -7,6 +7,8 @@ import java.util.List;
 public class SeatRowModel {
 
     private String rowId;
-    private Integer rowNumber;
+    private String rowIndex;
+    private String seatCategory;
+    private List<Integer> passageAfterwards;
     private List<SeatModel> seats;
 }

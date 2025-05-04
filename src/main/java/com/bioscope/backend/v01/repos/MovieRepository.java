@@ -6,23 +6,32 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
+@Repository
 public interface MovieRepository extends JpaRepository<MovieEntity, UUID> {
 
+    @Query(value = "SELECT m FROM MovieEntity m WHERE m.isCurrentlyStreaming")
+    List<MovieEntity> getCurrentlyStreamingMovies();
 
-    @Query(value = "SELECT * FROM movies WHERE title = :title",nativeQuery = true)
-    List<MovieEntity> getMovieByTitle(String title);
+    @Query("SELECT m FROM MovieEntity m WHERE m.isCurrentlyStreaming = false ORDER BY m.views DESC")
+    List<MovieEntity> trendingMovies();
 
-    @Query(value = "SELECT * FROM movies WHERE genreId= :genreId",nativeQuery = true)
-    List<MovieEntity> getMoviesByGenreId(long genreId);
+    @Query(
+            "SELECT DISTINCT m FROM MovieEntity m " +
+                    "LEFT JOIN m.genre g " +
+                    "WHERE m.isCurrentlyStreaming = false " +
+                    "AND (" +
+                    "g.genreName LIKE CONCAT('%',:query, '%') " +
+                    "OR m.title LIKE CONCAT('%', :query, '%') " +
+                    "OR m.casts LIKE CONCAT('%', :query, '%') " +
+                    "OR m.language LIKE CONCAT('%', :query, '%')" +
+                    ")"
+    )
+    List<MovieEntity> searchMovies(@Param("query") String query);
 
-    @Query(value = "SELECT * FROM movies WHERE genreName= :genreName",nativeQuery = true)
-    List<MovieEntity> getMoviesByGenreName(@Param("genreName") String genreName);
-
-    @Query(value = "SELECT * FROM movies WHERE casts LIKE CONCAT('%',:cast,'%')",nativeQuery = true)
-    List<MovieEntity> getMovieEntitiesByCasts(@Param("cast") String cast);
 }
 

@@ -9,9 +9,7 @@ public class ScreenModel {
 
     private String screenId;
     private String screenName;
-    private String eventHostId;
-    private List<ShowModel> currentShows;
     private SeatingArrangementModel seatingArrangement;
-    private int totalAvailableSeats;
+    private List<ShowModel> currentShows;
 
 }

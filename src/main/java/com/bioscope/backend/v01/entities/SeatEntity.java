@@ -1,32 +1,35 @@
 package com.bioscope.backend.v01.entities;
-import com.bioscope.backend.v01.enums.SeatCategory;
+
+
+import com.bioscope.backend.v01.constants.SeatId;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class SeatEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @EmbeddedId
+    private SeatId id;
 
-    private Integer seatNumber;
-
-    @Enumerated(EnumType.STRING)
-    private SeatCategory seatCategory;
-    /**
-     * -1 - Not-available
-     * 0 - Not-booked
-     * 1 - Booked
-     */
-    private int bookingStatus = -1;
-
-    @ManyToOne
-    @JoinColumn(name = "row_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "row_id", referencedColumnName = "rowId")
     private SeatRowEntity seatRowEntity;
 
+    private Integer price;
+
+    @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ShowSeatEntity> showSeats = new ArrayList<>();
+
+
+    public void addShowSeat(ShowSeatEntity showSeat) {
+        showSeats.add(showSeat);
+        showSeat.setSeat(this);
+    }
 }

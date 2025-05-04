@@ -2,11 +2,14 @@ package com.bioscope.backend.v01.entities;
 
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.VarcharUUIDJdbcType;
+
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -14,20 +17,15 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AdminEntity {
+public class TokenBlackListEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID adminId;
+    @JdbcType(VarcharUUIDJdbcType.class)
+    @Column(columnDefinition = "CHAR(36)")
+    private UUID id;
 
-    private String username;
+    private String token;
 
-    @Email(message = "Email should be valid")
-    private String email;
-
-    private String password;
-
-    private  String role;
-
-
+    private Date expiredAt = new Date();
 }

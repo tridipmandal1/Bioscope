@@ -3,11 +3,11 @@ package com.bioscope.backend.v01.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.VarcharUUIDJdbcType;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Entity
 @Setter
@@ -16,6 +16,8 @@ public class MovieEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcType(VarcharUUIDJdbcType.class)
+    @Column(columnDefinition = "CHAR(36)")
     private UUID movieId;
 
 
@@ -25,10 +27,9 @@ public class MovieEntity {
 
     private String language;
 
-    @Lob
-    private byte[] poster;
+    private String poster;
 
-    private Float rating = calculateRating();
+    private Float rating;
 
     private String duration;
 
@@ -39,25 +40,35 @@ public class MovieEntity {
     private String casts;
 
 
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<ReviewEntity> reviews;
 
-    @ManyToOne
-    private GenreEntity genre;
+    private Integer views;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genre",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<GenreEntity> genre;
 
     private  boolean isCurrentlyStreaming;
 
     @ManyToMany(mappedBy = "watchedMovies")
     private List<UserEntity> users;
 
-    @OneToMany
-    private Set<ShowEntity> show;
+    @OneToMany(mappedBy = "movie")
+    private List<ShowEntity> show;
 
-    private Float calculateRating() {
-        AtomicReference<Double> total = new AtomicReference<>(0.0);
+    public Float calculateRating() {
+        Double total = 0.0;
         if (reviews != null) {
-            reviews.forEach(review -> total.updateAndGet(v -> v + review.getRating()));
-            return (float) (total.get() / reviews.size());
+            for (ReviewEntity review : reviews) {
+                total += review.getRating();
+            }
+
+            return (float) (total / reviews.size());
         }
 
          return 0F;

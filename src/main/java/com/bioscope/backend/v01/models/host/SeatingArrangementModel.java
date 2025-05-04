@@ -10,6 +10,5 @@ public class SeatingArrangementModel {
         private String arrangementType;
         private List<SeatRowModel> seatRow;
         private Integer capacity;
-        private Integer bookedSeats;
-        private Double price;
+        private List<ShowSeatModel> showSeats;
 }

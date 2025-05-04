@@ -1,59 +1,70 @@
 package com.bioscope.backend.v01.mapper;
 
 import com.bioscope.backend.v01.entities.SeatRowEntity;
-import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
+import com.bioscope.backend.v01.enums.SeatCategory;
 import com.bioscope.backend.v01.models.host.SeatModel;
 import com.bioscope.backend.v01.models.host.SeatRowModel;
-import com.bioscope.backend.v01.repos.SeatRowRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class SeatRowMapper {
 
     private final SeatMapper seatMapper;
-    private final SeatRowRepository seatRowRepository;
 
-    public SeatRowMapper(SeatMapper seatMapper, SeatRowRepository seatRowRepository) {
+    public SeatRowMapper(SeatMapper seatMapper) {
         this.seatMapper = seatMapper;
-        this.seatRowRepository = seatRowRepository;
     }
 
-    /**
-     * Maps SeatRowEntity to SeatRowModel
-     * @param entity {@link SeatRowEntity}
-     * @return {@link SeatRowModel}
-     */
      SeatRowModel entityToModel(SeatRowEntity entity) {
          if (entity == null) {
              return null;
          }
         SeatRowModel model = new SeatRowModel();
         model.setRowId(entity.getRowId().toString());
-        model.setRowNumber(entity.getRowNumber());
+        model.setRowIndex(entity.getRowIndex());
+        model.setSeatCategory(entity.getSeatCategory().name());
         if (entity.getSeats() != null) {
+
             model.setSeats(entity.getSeats().stream()
-                    .map(seatMapper::entityToModel).toList());
+                    .map(seatMapper::entityToModel).collect(Collectors.toList()));
+//            List<SeatModel> seats = new ArrayList<>();
+//            for (int i = 1; i <= entity.getSeats().size(); i++) {
+//                if (entity.getPassageAfterwards().isEmpty()) {
+//                    seats = entity.getSeats().stream()
+//                            .map(seatMapper::entityToModel).toList();
+//                    break;
+//                } else {
+//                    seats.add(seatMapper.entityToModel(entity.getSeats().get(i - 1)));
+//                    if(entity.getPassageAfterwards().contains(i)){
+//                        seats.add(new SeatModel(null, -1, null));
+//                    }
+//                }
+//            }
+//            model.setSeats(seats);
+        }
+        if (entity.getPassageAfterwards() != null) {
+            model.setPassageAfterwards(entity.getPassageAfterwards());
         }
         return model;
     }
 
-    /**
-     * Maps SeatRowModel to SeatRowEntity
-     * @param model {@link SeatRowModel}
-     * @return {@link SeatRowEntity}
-     */
     SeatRowEntity modelToEntity(SeatRowModel model) {
         if (model == null) {
             return null;
         }
         SeatRowEntity entity = new SeatRowEntity();
-        entity.setRowNumber(model.getRowNumber());
+        entity.setRowIndex(model.getRowIndex());
+        entity.setSeatCategory(SeatCategory.valueOf(model.getSeatCategory()));
         if (model.getSeats() != null) {
             entity.setSeats(model.getSeats().stream()
                     .map(seatMapper::modelToEntity).toList());
+        }
+        if (model.getPassageAfterwards() != null) {
+            entity.setPassageAfterwards(model.getPassageAfterwards());
         }
         return entity;
     }

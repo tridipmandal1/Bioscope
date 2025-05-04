@@ -1,13 +1,12 @@
 package com.bioscope.backend.v01.mapper;
 
 
+import com.bioscope.backend.v01.entities.ShowEntity;
+import com.bioscope.backend.v01.enums.Roles;
 import com.bioscope.backend.v01.entities.GenreEntity;
 import com.bioscope.backend.v01.entities.UserEntity;
-import com.bioscope.backend.v01.entities.MovieEntity;
 import com.bioscope.backend.v01.models.user.UserModel;
-import com.bioscope.backend.v01.repos.GenreRepository;
-import com.bioscope.backend.v01.repos.MovieRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bioscope.backend.v01.utils.CallerContext;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -15,73 +14,87 @@ import java.util.*;
 @Component
 public class UserMapper {
 
-    private final GenreRepository genreRepository;
-    private final MovieRepository movieRepository;
+    private final ShowMapper showMapper;
+    private final ScreenMapper screenMapper;
+    private final MovieMapper movieMapper;
+    private final TicketMapper ticketMapper;
 
-    public UserMapper(GenreRepository genreRepository, MovieRepository movieRepository){
-        this.genreRepository = genreRepository;
-        this.movieRepository = movieRepository;
+    public UserMapper(ShowMapper showMapper,
+                      ScreenMapper screenMapper,
+                      MovieMapper movieMapper,
+                      TicketMapper ticketMapper) {
+        this.showMapper = showMapper;
+        this.screenMapper = screenMapper;
+        this.movieMapper = movieMapper;
+        this.ticketMapper = ticketMapper;
     }
 
-    /**
-     * Maps UserEntity to UserModel
-     * @param userEntity {@link UserEntity}
-     * @return {@link UserModel}
-     */
     public UserModel entityToModel(UserEntity userEntity){
         if (userEntity == null){
             return null;
         }
         UserModel userModel = new UserModel();
-        userModel.setUserId(String.valueOf(userEntity.getUserID()));
+        userModel.setUserId(String.valueOf(userEntity.getId()));
         userModel.setEmail(userEntity.getEmail());
+        userModel.setRole(userEntity.getRole().name());
         userModel.setName(userEntity.getName());
-        userModel.setCurrentLocation(userEntity.getCurrentLocation());
-        List<String> userInterests = new ArrayList<>();
-        List<GenreEntity> genreEntities = userEntity.getInterests();
-        if(genreEntities != null){
-            genreEntities.stream().map(GenreEntity :: getGenreName).forEach(userInterests::add);
-            userModel.setInterests(userInterests);
+        userModel.setLocation(userEntity.getLocation());
+        if(userEntity.getInterests() != null){
+            userModel.setInterests(userEntity.getInterests().stream()
+                    .map(GenreEntity::getGenreName).toList());
         }
-        List<String> userWatchedMovies = new ArrayList<>();
-        List<MovieEntity> moviesWatched = userEntity.getWatchedMovies();
-        if(moviesWatched != null){
-            moviesWatched.stream().map(movieEntity -> movieEntity.getMovieId().toString()).forEach(userWatchedMovies::add);
-            userModel.setWatchedMovies(userWatchedMovies);
+        if(userEntity.getShows() != null){
+            if (CallerContext.getCaller().equals(Roles.HOST.name()))  {
+                userModel.setShows(userEntity.getShows()
+                        .stream().map(showMapper::entityToModel).toList());
+            }
+            if (CallerContext.getCaller().equals(Roles.USER.name())) {
+                List<ShowEntity> openShows =
+                        userEntity.getShows()
+                                .stream()
+                                .filter(showEntity -> showEntity.getMovie() == null)
+                                .toList();
+                userModel.setShows(openShows.stream().map(showMapper::entityToModel).toList());
+            }
         }
+        if(CallerContext.getCaller().equals(Roles.HOST.name()) && userEntity.getScreens() != null){
+            userModel.setScreens(userEntity.getScreens()
+                    .stream().map(screenMapper::entityToModel).toList());
+        }
+        if(userEntity.getWatchedMovies() != null){
+            userModel.setWatchedMovies(userEntity.getWatchedMovies()
+                    .stream().map(movieMapper::entityToModel).toList());
+        }
+       if (userEntity.getBookedTickets() != null){
+           userModel.setBookedTickets(
+                     userEntity.getBookedTickets()
+                            .stream().map(ticketMapper::entityToModel).toList()
+           );
+       }
         return userModel;
     }
 
-    /**
-     * Maps UserModel to UserEntity
-     * @param userModel {@link UserModel}
-     * @return {@link UserEntity}
-     */
+
     public UserEntity modelToEntity(UserModel userModel){
         if (userModel == null){
             return null;
         }
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail(userModel.getEmail());
+        userEntity.setRole(Roles.valueOf(userModel.getRole()));
         userEntity.setName(userModel.getName());
-        userEntity.setCurrentLocation(userModel.getCurrentLocation());
-       List<String> interests =  userModel.getInterests();
-         if(interests != null){
-              List<GenreEntity> genreEntities = new ArrayList<>();
-              interests.forEach(interest -> {
-                Optional<GenreEntity> genreEntity = genreRepository.findByGenreName(interest);
-                genreEntity.ifPresent(genreEntities::add);
-              });
-              userEntity.setInterests(genreEntities);
-    }
-        List<String> watchedMovies = userModel.getWatchedMovies();
-        if(watchedMovies != null){
-            List<MovieEntity> movieEntities = new ArrayList<>();
-            watchedMovies.forEach(watchedMovie -> {
-                Optional<MovieEntity> movieEntity = movieRepository.findById(UUID.fromString(watchedMovie));
-                movieEntity.ifPresent(movieEntities::add);
-            });
-            userEntity.setWatchedMovies(movieEntities);
+        userEntity.setLocation(userModel.getLocation());
+        if(userModel.getWatchedMovies() != null){
+            userEntity.setWatchedMovies(userModel.getWatchedMovies()
+                    .stream().map(movieMapper::modelToEntity).toList());
+        }
+        if (userModel.getShows() != null){
+            userEntity.setShows(userModel.getShows()
+                    .stream().map(showMapper::modelToEntity).toList());
+        }
+        if (userModel.getScreens() != null){
+            userEntity.setScreens(userModel.getScreens()
+                    .stream().map(screenMapper::modelToEntity).toList());
         }
         return userEntity;
     }

@@ -1,5 +1,6 @@
 package com.bioscope.backend.v01.mapper;
 
+import com.bioscope.backend.v01.entities.GenreEntity;
 import com.bioscope.backend.v01.entities.MovieEntity;
 import com.bioscope.backend.v01.models.MovieModel;
 import org.springframework.stereotype.Component;
@@ -14,12 +15,7 @@ public class MovieMapper {
         this.reviewMapper = reviewMapper;
     }
 
-    /**
-     * Maps the movie entity to movie model
-     * @param movieEntity {@link MovieEntity}
-     * @return {@link MovieModel}
-     */
-    MovieModel entityToModel (MovieEntity movieEntity) {
+    public MovieModel entityToModel(MovieEntity movieEntity) {
         if (movieEntity == null) {
             return null;
         }
@@ -27,7 +23,8 @@ public class MovieMapper {
         movieModel.setMovieId(movieEntity.getMovieId().toString());
         movieModel.setTitle(movieEntity.getTitle());
         movieModel.setDescription(movieEntity.getDescription());
-        movieModel.setGenre(movieEntity.getGenre().getGenreName());
+        movieModel.setGenres(movieEntity.getGenre().
+                stream().map(GenreEntity::getGenreName).collect(Collectors.toList()));
         movieModel.setDuration(movieEntity.getDuration());
         movieModel.setRating(String.valueOf(movieEntity.getRating()));
         movieModel.setLanguage(movieEntity.getLanguage());
@@ -40,16 +37,12 @@ public class MovieMapper {
                             .map(reviewMapper :: entityToModel).collect(Collectors.toList())
             );
         }
+        movieModel.setPoster(movieEntity.getPoster());
         movieModel.setCurrentlyStreaming(movieEntity.isCurrentlyStreaming());
         return movieModel;
     }
 
-    /**
-     * Maps the movie model to movie entity
-     * @param movieModel {@link MovieModel}
-     * @return {@link MovieEntity}
-     */
-    MovieEntity modelToEntity (MovieModel movieModel) {
+    public MovieEntity modelToEntity(MovieModel movieModel) {
         if (movieModel == null) {
             return null;
         }
@@ -67,6 +60,7 @@ public class MovieMapper {
                             .map(reviewMapper :: modelToEntity).collect(Collectors.toList())
             );
         }
+        movieEntity.setPoster(movieModel.getPoster());
         movieEntity.setCurrentlyStreaming(movieModel.isCurrentlyStreaming());
         return movieEntity;
     }

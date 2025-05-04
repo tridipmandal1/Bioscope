@@ -1,14 +1,9 @@
 package com.bioscope.backend.v01.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
+@Builder
 public class ApiResponse {
     private String message;
     private boolean status;

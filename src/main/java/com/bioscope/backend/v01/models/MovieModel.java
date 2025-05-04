@@ -10,10 +10,11 @@ public class MovieModel {
     private String movieId;
     private String title;
     private String description;
-    private String genre;
+    private List<String> genres;
     private String duration;
     private String rating;
     private String language;
+    private String poster;
     private String releaseDate;
     private String trailerUrl;
     private String casts;
