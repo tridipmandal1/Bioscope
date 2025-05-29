@@ -27,7 +27,9 @@ public interface ShowRepository extends JpaRepository<ShowEntity, UUID> {
                                              @Param("location") String location);
 
 
-    @Query("SELECT s FROM ShowEntity s WHERE s.location LIKE CONCAT('%',:location,'%') ORDER BY s.bookings DESC")
+    @Query("SELECT s FROM ShowEntity s WHERE s.location LIKE CONCAT('%',:location,'%')" +
+            " AND s.showDate >= CURRENT_DATE " +
+            " ORDER BY s.bookings DESC")
     List<ShowEntity> findTrendingShowsByLocation(@Param("location") String location);
 
 

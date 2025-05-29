@@ -5,6 +5,7 @@ import com.bioscope.backend.v01.models.MovieModel;
 import com.bioscope.backend.v01.models.ReviewModel;
 import com.bioscope.backend.v01.models.host.SeatingArrangementModel;
 import com.bioscope.backend.v01.models.host.ShowModel;
+import com.bioscope.backend.v01.models.user.PaymentVerificationRequest;
 import com.bioscope.backend.v01.models.user.SearchResult;
 import com.bioscope.backend.v01.models.user.TicketModel;
 import com.bioscope.backend.v01.models.user.UserModel;
@@ -124,21 +125,39 @@ public class UserController {
     produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TicketModel> bookTicket(
             @PathVariable String showId,
+            @RequestParam Double amount,
             @RequestBody List<String> showSeatId
     ){
         log.info(showSeatId.toString());
-        return new ResponseEntity<>(bookingService.bookSeats(showId, showSeatId), HttpStatus.OK);
+        return new ResponseEntity<>(bookingService.bookSeats(showId, showSeatId, amount), HttpStatus.OK);
     }
 
     @PostMapping(value = "/booking/pass/{showId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TicketModel> bookEntryPass(
             @RequestParam String category,
             @RequestParam Integer quantity,
+            @RequestParam Double amount,
             @PathVariable String showId
     ){
-        TicketModel ticket = bookingService.bookEntryPass(showId, category, quantity);
+        TicketModel ticket = bookingService.bookEntryPass(showId, category, quantity, amount);
         return new ResponseEntity<>(ticket, HttpStatus.OK);
     }
+
+    @PostMapping(value = "/verify-payment", produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> verifyPayment(@RequestBody PaymentVerificationRequest verificationRequest){
+        if(bookingService.verifyPayment(verificationRequest)){
+            return new ResponseEntity<>(ApiResponse.builder()
+                    .status(true)
+                    .message("Payment verified")
+                    .build(), HttpStatus.OK);
+        }else{
+        return new ResponseEntity<>(ApiResponse.builder()
+                .status(false)
+                .message("Payment verification failed")
+                .build(), HttpStatus.BAD_REQUEST);
+    }
+        }
 
     @PostMapping(value = "/booking/cancel/{showId}/{ticketId}")
     public ResponseEntity<ApiResponse> cancelTickets(

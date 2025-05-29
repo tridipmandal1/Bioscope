@@ -51,7 +51,8 @@ public class SecurityConfigurations {
                     "/v01/user/shows/seating",
                     "/v01/user/movie/**",
                     "/v01/user/show/**",
-                    "/v01/user/review/**"
+                    "/v01/user/review/**",
+                    "/v01/host/movie/**"
             ).permitAll();
             authorize.requestMatchers("/v01/user/**")
                    .hasAuthority("USER");

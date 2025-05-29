@@ -17,13 +17,13 @@ public interface MovieRepository extends JpaRepository<MovieEntity, UUID> {
     @Query(value = "SELECT m FROM MovieEntity m WHERE m.isCurrentlyStreaming")
     List<MovieEntity> getCurrentlyStreamingMovies();
 
-    @Query("SELECT m FROM MovieEntity m WHERE m.isCurrentlyStreaming = false ORDER BY m.views DESC")
+    @Query("SELECT m FROM MovieEntity m WHERE m.isCurrentlyStreaming = true ORDER BY m.views DESC")
     List<MovieEntity> trendingMovies();
 
     @Query(
             "SELECT DISTINCT m FROM MovieEntity m " +
                     "LEFT JOIN m.genre g " +
-                    "WHERE m.isCurrentlyStreaming = false " +
+                    "WHERE m.isCurrentlyStreaming = true " +
                     "AND (" +
                     "g.genreName LIKE CONCAT('%',:query, '%') " +
                     "OR m.title LIKE CONCAT('%', :query, '%') " +

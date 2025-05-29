@@ -41,7 +41,7 @@ public class TicketEntity {
     @DateTimeFormat(pattern = "HH:mm")
     private LocalTime startTime;
 
-    @OneToMany(mappedBy = "ticket", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "ticket",fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<ShowSeatEntity> showSeats = new ArrayList<>();
 
     // if pass
@@ -56,6 +56,11 @@ public class TicketEntity {
     private UserEntity user;
 
     private String ticketQRCode;
+
+    private String orderId; // Razorpay order ID
+    private String paymentId; // Razorpay payment ID
+    private String paymentStatus; // PENDING, SUCCESS, FAILED
+    private Double amount;
 
 
     public void addShowSeat(ShowSeatEntity showSeat) {

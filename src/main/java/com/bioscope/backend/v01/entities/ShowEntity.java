@@ -1,7 +1,6 @@
 package com.bioscope.backend.v01.entities;
 
 import com.bioscope.backend.v01.enums.ArrangementType;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -48,8 +46,8 @@ public class ShowEntity {
 
     private Integer reserved;
 
-    @ElementCollection
-    private Map<String, Integer> ticketPrice;
+    @OneToMany(mappedBy = "show", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<PassCategoryEntity> ticketPrice;
 
 
     private String showDescription;

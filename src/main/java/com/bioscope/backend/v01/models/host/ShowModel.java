@@ -1,6 +1,7 @@
 package com.bioscope.backend.v01.models.host;
 
 import com.bioscope.backend.v01.models.MovieModel;
+import com.bioscope.backend.v01.models.PassCategoryModel;
 import com.bioscope.backend.v01.models.TicketPrice;
 import lombok.Data;
 
@@ -25,5 +26,5 @@ public class ShowModel {
     private String showDate;
     private String showTime;
     private String showDuration;
-    private List<TicketPrice> ticketPrice;
+    private List<PassCategoryModel> ticketPrice;
 }

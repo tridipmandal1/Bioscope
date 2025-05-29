@@ -7,6 +7,8 @@ import com.bioscope.backend.v01.entities.GenreEntity;
 import com.bioscope.backend.v01.entities.UserEntity;
 import com.bioscope.backend.v01.models.user.UserModel;
 import com.bioscope.backend.v01.utils.CallerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -14,6 +16,7 @@ import java.util.*;
 @Component
 public class UserMapper {
 
+    private static final Logger log = LoggerFactory.getLogger(UserMapper.class);
     private final ShowMapper showMapper;
     private final ScreenMapper screenMapper;
     private final MovieMapper movieMapper;
@@ -43,21 +46,20 @@ public class UserMapper {
             userModel.setInterests(userEntity.getInterests().stream()
                     .map(GenreEntity::getGenreName).toList());
         }
-        if(userEntity.getShows() != null){
+        if(CallerContext.getCaller() == null) {
+            log.info("Called from Auth");
+        }
+        else if(userEntity.getShows() != null){
             if (CallerContext.getCaller().equals(Roles.HOST.name()))  {
                 userModel.setShows(userEntity.getShows()
                         .stream().map(showMapper::entityToModel).toList());
             }
             if (CallerContext.getCaller().equals(Roles.USER.name())) {
-                List<ShowEntity> openShows =
-                        userEntity.getShows()
-                                .stream()
-                                .filter(showEntity -> showEntity.getMovie() == null)
-                                .toList();
-                userModel.setShows(openShows.stream().map(showMapper::entityToModel).toList());
+
+                userModel.setShows(userEntity.getShows().stream().map(showMapper::entityToModel).toList());
             }
         }
-        if(CallerContext.getCaller().equals(Roles.HOST.name()) && userEntity.getScreens() != null){
+        else if(CallerContext.getCaller().equals(Roles.HOST.name()) && userEntity.getScreens() != null){
             userModel.setScreens(userEntity.getScreens()
                     .stream().map(screenMapper::entityToModel).toList());
         }
@@ -68,7 +70,9 @@ public class UserMapper {
        if (userEntity.getBookedTickets() != null){
            userModel.setBookedTickets(
                      userEntity.getBookedTickets()
-                            .stream().map(ticketMapper::entityToModel).toList()
+                            .stream().filter(ticket -> Objects
+                                     .equals(ticket.getPaymentStatus(), "SUCCESS"))
+                             .map(ticketMapper::entityToModel).toList()
            );
        }
         return userModel;

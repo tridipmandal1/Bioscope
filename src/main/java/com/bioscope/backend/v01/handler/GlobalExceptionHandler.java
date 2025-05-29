@@ -3,8 +3,10 @@ package com.bioscope.backend.v01.handler;
 import com.bioscope.backend.v01.exceptions.AlreadyExistsException;
 import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
 import com.bioscope.backend.v01.models.ApiResponse;
+import com.razorpay.RazorpayException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ValidationException;
+import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -123,6 +125,17 @@ public class GlobalExceptionHandler {
                     .status(false)
                     .build();
 
+        }
+        if (exception instanceof RazorpayException) {
+            apiResponse = ApiResponse.builder()
+                    .message("Error in payment gateway")
+                    .status(false)
+                    .build();
+        } else if (exception instanceof JSONException) {
+            apiResponse = ApiResponse.builder()
+                    .message("Error creating json object")
+                    .status(false)
+                    .build();
         }
         else {
             apiResponse = ApiResponse.builder()

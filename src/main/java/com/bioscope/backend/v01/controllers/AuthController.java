@@ -6,10 +6,12 @@ import com.bioscope.backend.v01.models.user.UserProfileRequestModel;
 import com.bioscope.backend.v01.models.user.UserRequestModel;
 import com.bioscope.backend.v01.security.JwtProvider;
 import com.bioscope.backend.v01.services.iface.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
 @RequestMapping("/v01/auth")
@@ -25,7 +27,6 @@ public class AuthController {
     public ResponseEntity<UserModel> registerUser(@RequestBody @Valid UserRequestModel userRequestModel) {
 
         UserModel userModel = authService.registerUser(userRequestModel);
-        // TODO: Send email verification
         return new ResponseEntity<>(userModel, HttpStatus.CREATED);
     }
 
@@ -47,6 +48,17 @@ public class AuthController {
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
 
+    @RequestMapping("/verify-account")
+    public RedirectView verifyAccount(@RequestParam String token, @RequestParam String email, HttpServletRequest request){
+        RedirectView view = new RedirectView();
+        if (authService.verifyAccount(token, email)) {
+             view.setUrl("http://localhost:4200/join");
+
+        } else {
+            view.setUrl("http://localhost:4200/error");
+        }
+        return view;
+    }
     @PostMapping("/logout")
     public ResponseEntity<String> logoutUser(@RequestParam String token, @RequestParam String refreshToken){
         authService.logoutUser(token, refreshToken);

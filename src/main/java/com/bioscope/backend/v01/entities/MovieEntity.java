@@ -53,7 +53,7 @@ public class MovieEntity {
     )
     private List<GenreEntity> genre;
 
-    private  boolean isCurrentlyStreaming;
+    private  boolean isCurrentlyStreaming = true;
 
     @ManyToMany(mappedBy = "watchedMovies")
     private List<UserEntity> users;

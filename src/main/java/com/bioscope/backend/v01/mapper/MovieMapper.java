@@ -61,7 +61,7 @@ public class MovieMapper {
             );
         }
         movieEntity.setPoster(movieModel.getPoster());
-        movieEntity.setCurrentlyStreaming(movieModel.isCurrentlyStreaming());
+        movieEntity.setCurrentlyStreaming(true);
         return movieEntity;
     }
 }

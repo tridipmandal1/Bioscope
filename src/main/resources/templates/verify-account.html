@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification - Bioscope</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            color: #118ab2;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #118ab2;
+            color: white;
+            padding: 12px 24px;
+            margin-top: 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .fallback-link {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #343a40;
+            word-break: break-all;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-camera-reels" viewBox="0 0 16 16">
+                <path d="M6 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0M1 3a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/>
+                <path d="M9 6h.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 7.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 16H2a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm6 8.73V7.27l-3.5 1.555v4.35zM1 8v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1"/>
+                <path d="M9 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6M7 3a2 2 0 1 1 4 0 2 2 0 0 1-4 0"/>
+            </svg>
+            Bioscope
+        </div>
+    </div>
+
+    <p>Hello <span th:text="${email}">User</span>,</p>
+
+    <p>Thank you for signing up with <strong>Bioscope</strong>! Please verify your email address by clicking the button below:</p>
+
+    <div style="text-align: center;">
+        <a th:href="@{${verificationUrl}}" class="button">Verify Email</a>
+    </div>
+
+    <div class="fallback-link">
+        <p>In case the button doesn't work, use the following link:</p>
+        <p><a th:href="@{${verificationUrl}}" th:text="${verificationUrl}">verification link</a></p>
+    </div>
+
+    <p>If you didn't create an account, you can safely ignore this email.</p>
+
+    <div class="footer">
+        &copy; 2025 Bioscope. All rights reserved.
+    </div>
+</div>
+</body>
+</html>

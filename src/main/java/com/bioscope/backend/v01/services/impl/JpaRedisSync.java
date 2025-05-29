@@ -1,9 +1,13 @@
 package com.bioscope.backend.v01.services.impl;
 
+import com.bioscope.backend.v01.entities.PassCategoryEntity;
 import com.bioscope.backend.v01.enums.ArrangementType;
 import com.bioscope.backend.v01.enums.SeatStatus;
+import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
+import com.bioscope.backend.v01.repos.PassCategoryRepository;
 import com.bioscope.backend.v01.repos.ShowRepository;
 import com.bioscope.backend.v01.repos.ShowSeatRepository;
+import com.bioscope.backend.v01.repos.TicketRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -11,6 +15,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bioscope.backend.v01.entities.ShowEntity;
+import com.bioscope.backend.v01.entities.TicketEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -23,22 +29,26 @@ public class JpaRedisSync {
     private final ShowSeatRepository showSeatRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final ShowRepository showRepository;
+    private final TicketRepository ticketRepository;
+    private final PassCategoryRepository passCategoryRepository;
 
     public JpaRedisSync(ShowSeatRepository showSeatRepository,
                         RedisTemplate<String, String> redisTemplate,
-                        ShowRepository showRepository) {
+                        ShowRepository showRepository,
+                        TicketRepository ticketRepository, PassCategoryRepository passCategoryRepository) {
         this.showSeatRepository = showSeatRepository;
         this.redisTemplate = redisTemplate;
         this.showRepository = showRepository;
+        this.ticketRepository = ticketRepository;
+        this.passCategoryRepository = passCategoryRepository;
     }
 
     @Scheduled(fixedRate = 300000)
-    @Transactional// Every 5 minutes
+    @Transactional
     public void syncRedisToJpa() {
         log.info("Starting Redis to JPA sync...");
 
         syncSeatedShows();
-
         syncStandingShows();
 
         log.info("Redis to JPA sync completed.");
@@ -50,7 +60,7 @@ public class JpaRedisSync {
             passKeys.forEach(key -> {
                 try {
                     String[] parts = key.split(":");
-                    if (parts.length != 3 || !parts[0].equals("show") || !parts[2].equals("passes")) {
+                    if (parts.length != 5 || !parts[0].equals("show") || !parts[2].equals("category") || !parts[4].equals("passes")) {
                         log.warn("Invalid pass key format: {}", key);
                         return;
                     }
@@ -61,12 +71,25 @@ public class JpaRedisSync {
 
                     showRepository.findById(showId).ifPresent(show -> {
                         if (show.getArrangementType() == ArrangementType.STANDING) {
-                            int currentReserved = show.getReserved() != null ? show.getReserved() : 0;
-                            if (reservedInRedis != currentReserved) {
-                                show.setReserved(reservedInRedis);
-                                show.setBookings(reservedInRedis); // Assuming bookings = reserved for simplicity
+                            int confirmedBookings = ticketRepository.findByShowIdAndPaymentStatus(showId.toString(), "SUCCESS")
+                                    .stream()
+                                    .mapToInt(TicketEntity::getAllowedPersons)
+                                    .sum();
+                            if (reservedInRedis != confirmedBookings) {
+                                PassCategoryEntity passCategory =
+                                        show.getTicketPrice()
+                                                .stream()
+                                                .filter(cat -> cat
+                                                        .getCategory()
+                                                        .equals(parts[3].toUpperCase()))
+                                                .findFirst().orElseThrow(
+                                                        () -> new ResourceNotFoundException("PassCategory", "Category", parts[3].toUpperCase())
+                                                );
+                                passCategory.setReserved(confirmedBookings);
+                                passCategoryRepository.save(passCategory);
+                                show.setBookings(confirmedBookings);
                                 showRepository.save(show);
-                                log.debug("Synced reserved passes for show {}: {} passes", showId, reservedInRedis);
+                                log.debug("Synced reserved passes for show {}: {} passes", showId, confirmedBookings);
                             }
                         }
                     });
@@ -75,7 +98,6 @@ public class JpaRedisSync {
                 }
             });
         }
-
     }
 
     private void syncSeatedShows() {
@@ -95,16 +117,16 @@ public class JpaRedisSync {
 
                     if ("booked".equals(status)) {
                         showSeatRepository.findById(seatId).ifPresent(seat -> {
-                            if (seat.getSeatStatus() != SeatStatus.BOOKED) {
+                            boolean isConfirmed = ticketRepository.findByShowIdAndPaymentStatus(showId.toString(), "SUCCESS")
+                                    .stream()
+                                    .flatMap(t -> t.getShowSeats().stream())
+                                    .anyMatch(s -> s.getId().equals(seatId));
+                            if (isConfirmed && seat.getSeatStatus() != SeatStatus.BOOKED) {
                                 seat.setSeatStatus(SeatStatus.BOOKED);
                                 showSeatRepository.save(seat);
                                 log.debug("Synced seat {} to BOOKED for show {}", seatId, showId);
                             }
                         });
-                    } else if ("reserved".equals(status) && redisTemplate.getExpire(key, TimeUnit.SECONDS) <= 0) {
-                        // Handle expired reservations missed by cleanup
-                        redisTemplate.delete(key);
-                        log.debug("Removed expired reservation for seat {} in show {}", seatId, showId);
                     }
                 } catch (Exception e) {
                     log.error("Error syncing seat key {}: {}", key, e.getMessage());
@@ -114,17 +136,24 @@ public class JpaRedisSync {
     }
 
     @EventListener(ApplicationReadyEvent.class)
+    @Transactional
     public void initializeRedis() {
-        showSeatRepository.findAll().forEach(seat -> {
-            String key = "show:" + seat.getShow().getShowId() + ":seat:" + seat.getId();
-            if (seat.getSeatStatus() == SeatStatus.BOOKED) {
-                redisTemplate.opsForValue().set(key, "booked");
-            }
-        });
-        showRepository.findAll().forEach(show -> {
-            if (show.getArrangementType() == ArrangementType.STANDING && show.getReserved() != null) {
-                String key = "show:" + show.getShowId() + ":passes";
-                redisTemplate.opsForValue().set(key, String.valueOf(show.getReserved()));
+        ticketRepository.findByPaymentStatus("SUCCESS").forEach(ticket -> {
+            ShowEntity show = showRepository.findById(UUID.fromString(ticket.getShowId())).orElse(null);
+            if (show != null) {
+                if (show.getArrangementType() == ArrangementType.STANDING) {
+                    String key = "show:" + show.getShowId() + "category:" + ticket.getCategory().toUpperCase()  + ":passes";
+                    int confirmedBookings = ticketRepository.findByShowIdAndPaymentStatus(show.getShowId().toString(), "SUCCESS")
+                            .stream()
+                            .mapToInt(TicketEntity::getAllowedPersons)
+                            .sum();
+                    redisTemplate.opsForValue().set(key, String.valueOf(confirmedBookings));
+                } else {
+                    ticket.getShowSeats().forEach(seat -> {
+                        String key = "show:" + show.getShowId() + ":seat:" + seat.getId();
+                        redisTemplate.opsForValue().set(key, "booked");
+                    });
+                }
             }
         });
     }

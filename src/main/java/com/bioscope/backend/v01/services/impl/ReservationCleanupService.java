@@ -1,11 +1,14 @@
 package com.bioscope.backend.v01.services.impl;
 
 
+import com.bioscope.backend.v01.entities.PassCategoryEntity;
 import com.bioscope.backend.v01.entities.SeatEventEntity;
 import com.bioscope.backend.v01.enums.SeatStatus;
+import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
 import com.bioscope.backend.v01.repos.SeatEventRepository;
 import com.bioscope.backend.v01.repos.ShowRepository;
 import com.bioscope.backend.v01.repos.ShowSeatRepository;
+import com.bioscope.backend.v01.repos.TicketRepository;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,20 +25,23 @@ public class ReservationCleanupService {
     private final RedisTemplate<String, String> redisTemplate;
     private final SeatEventRepository seatEventRepository;
     private final ShowRepository showRepository;
+    private final TicketRepository ticketRepository;
 
 
     public ReservationCleanupService(
             RedisTemplate<String, String> redisTemplate,
             SeatEventRepository seatEventRepository,
-            ShowRepository showRepository) {
+            ShowRepository showRepository,
+            TicketRepository ticketRepository) {
         this.redisTemplate = redisTemplate;
         this.seatEventRepository = seatEventRepository;
         this.showRepository = showRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(ReservationCleanupService.class);
 
-    @Scheduled(fixedRate = 60000) // Run every minute
+    @Scheduled(fixedRate = 60000)
     public void cleanupExpiredReservations() {
         Set<String> seatKeys = redisTemplate.keys("show:*:seat:*");
         if (seatKeys != null) {
@@ -50,15 +56,13 @@ public class ReservationCleanupService {
     }
 
     private void cleanupSeatKey(String key) {
-
         try {
             Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
-            if (ttl != null && ttl <= 0) { // Expired
-                // Validate key format
+            if (ttl != null && ttl <= 0) {
                 String[] parts = key.split(":");
                 if (parts.length != 4 || !parts[0].equals("show") || !parts[2].equals("seat")) {
                     logger.warn("Invalid key format detected: {}", key);
-                    redisTemplate.delete(key); // Clean up invalid keys
+                    redisTemplate.delete(key);
                     return;
                 }
 
@@ -76,6 +80,13 @@ public class ReservationCleanupService {
                     String userId = valueParts[1];
                     redisTemplate.delete(key);
                     seatEventRepository.save(new SeatEventEntity("ReservationExpired", showId, seatId, UUID.fromString(userId)));
+
+                    ticketRepository.findByShowIdAndPaymentStatus(showId.toString(), "PENDING").forEach(ticket -> {
+                        if (ticket.getShowSeats().stream().anyMatch(seat -> seat.getId().equals(seatId))) {
+                            ticket.setPaymentStatus("FAILED");
+                            ticketRepository.save(ticket);
+                        }
+                    });
                     logger.debug("Expired reservation cleaned up for key: {}", key);
                 } else {
                     logger.debug("Skipping non-reserved key: {}", key);
@@ -90,16 +101,29 @@ public class ReservationCleanupService {
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
         if (ttl != null && ttl <= 0) {
             String[] parts = key.split(":");
-            if (parts.length == 3 && parts[0].equals("show") && parts[2].equals("passes")) {
+            if (parts.length == 5 && parts[0].equals("show") && parts[2].equals("category") && parts[4].equals("passes")) {
                 UUID showId = UUID.fromString(parts[1]);
                 String reservedStr = redisTemplate.opsForValue().get(key);
                 int reserved = reservedStr != null ? Integer.parseInt(reservedStr) : 0;
                 redisTemplate.delete(key);
                 showRepository.findById(showId).ifPresent(show -> {
-                    show.setReserved(0); // Reset or adjust based on your logic
+                    PassCategoryEntity passCategory =
+                            show.getTicketPrice()
+                                    .stream()
+                                    .filter(cat -> cat
+                                            .getCategory()
+                                            .equals(parts[3].toUpperCase())).findFirst().orElseThrow(
+                                            () -> new ResourceNotFoundException("PassCategory", "Category", parts[3].toUpperCase())
+                                    );
+                    show.setReserved(0);
                     showRepository.save(show);
                 });
                 seatEventRepository.save(new SeatEventEntity("PassExpired", showId, reserved, null));
+
+                ticketRepository.findByShowIdAndPaymentStatus(showId.toString(), "PENDING").forEach(ticket -> {
+                    ticket.setPaymentStatus("FAILED");
+                    ticketRepository.save(ticket);
+                });
             }
         }
     }

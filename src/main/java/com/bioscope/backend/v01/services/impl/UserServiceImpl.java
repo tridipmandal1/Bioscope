@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -93,6 +94,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserModel getUserProfile() {
         UserEntity user = this.getUserContext();
         return userMapper.entityToModel(user);
@@ -131,7 +133,10 @@ public class UserServiceImpl implements UserService {
       List<UserEntity> hosts =   users.stream().filter(forMovie.and(forDate))
                 .toList();
 
-        hosts.forEach(host -> {});
+        hosts.forEach(host -> {
+            host.setShows(host.getShows().stream().filter(show ->
+                    Objects.equals(show.getMovie().getTitle(), movieName)).toList());
+        });
 
         return hosts.stream().map(userMapper::entityToModel).toList();
     }

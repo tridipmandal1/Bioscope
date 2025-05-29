@@ -1,8 +1,12 @@
 package com.bioscope.backend.v01.mapper;
 
 import com.bioscope.backend.v01.entities.ScreenEntity;
+import com.bioscope.backend.v01.entities.ShowEntity;
 import com.bioscope.backend.v01.models.host.ScreenModel;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,9 +28,12 @@ public class ScreenMapper {
         ScreenModel screenModel = new ScreenModel();
         screenModel.setScreenId(String.valueOf(screenEntity.getScreenId()));
         screenModel.setScreenName(screenEntity.getScreenName());
+        Predicate<ShowEntity> isShowDateBeforeToday = showEntity ->
+                showEntity.getShowDate().isAfter(LocalDate.now());
         if (screenEntity.getShows() != null) {
             screenModel.setCurrentShows(
                     screenEntity.getShows().stream()
+                            .filter(isShowDateBeforeToday)
                             .map(showMapper ::entityToModel).collect(Collectors.toList())
             );
         }

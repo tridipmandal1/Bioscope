@@ -24,8 +24,13 @@ public class TicketMapper {
         }
         TicketModel model = new TicketModel();
         model.setId(String.valueOf(entity.getId()));
+        model.setOrderId(entity.getOrderId());
+        model.setPaymentId(entity.getPaymentId());
+        model.setPaymentStatus(entity.getPaymentStatus());
+        model.setAmount(entity.getAmount());
         model.setHostId(String.valueOf(entity.getHostId()));
         model.setShowName(entity.getShowName());
+        model.setShowId(entity.getShowId());
         model.setDate(entity.getDate().toString());
         model.setStartTime(entity.getStartTime().toString());
         model.setCategory(entity.getCategory());

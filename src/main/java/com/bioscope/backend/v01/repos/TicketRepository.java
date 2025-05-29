@@ -4,8 +4,12 @@ import com.bioscope.backend.v01.entities.TicketEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface TicketRepository extends JpaRepository<TicketEntity, UUID> {
+
+    List<TicketEntity> findByShowIdAndPaymentStatus(String showId, String paymentStatus);
+    List<TicketEntity> findByPaymentStatus(String paymentStatus);
 }

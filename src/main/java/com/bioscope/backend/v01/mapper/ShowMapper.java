@@ -1,5 +1,6 @@
 package com.bioscope.backend.v01.mapper;
 
+import com.bioscope.backend.v01.entities.PassCategoryEntity;
 import com.bioscope.backend.v01.entities.ShowEntity;
 import com.bioscope.backend.v01.entities.UserEntity;
 import com.bioscope.backend.v01.enums.ArrangementType;
@@ -20,10 +21,13 @@ public class ShowMapper {
 
     private final MovieMapper movieMapper;
     private final ShowSeatMapper showSeatMapper;
+    private final PassCategoryMapper passCategoryMapper;
 
-    public ShowMapper (MovieMapper movieMapper, ShowSeatMapper showSeatMapper) {
+    public ShowMapper (MovieMapper movieMapper, ShowSeatMapper showSeatMapper,
+                       PassCategoryMapper passCategoryMapper) {
         this.movieMapper = movieMapper;
         this.showSeatMapper = showSeatMapper;
+        this.passCategoryMapper = passCategoryMapper;
     }
 
     public ShowModel entityToModel(ShowEntity showEntity) {
@@ -49,7 +53,7 @@ public class ShowMapper {
         showModel.setShowTime(showEntity.getShowTime().toString());
         showModel.setShowDuration(showEntity.getShowDuration().toString());
         showModel.setCapacity(showEntity.getCapacity());
-        showModel.setReserved(showEntity.getReserved());
+        showModel.setReserved(showEntity.getBookings());
         if(showEntity.getScreen() != null) {
             showModel.setScreenId(String.valueOf(showEntity.getScreen().getScreenId()));
         }
@@ -60,13 +64,8 @@ public class ShowMapper {
             showModel.setShowSeats(showSeats);
         }
         if (showEntity.getTicketPrice() != null) {
-            showModel.setTicketPrice(
-                    showEntity.getTicketPrice()
-                            .entrySet()
-                            .stream()
-                            .map(entry -> new TicketPrice(entry.getKey(), entry.getValue()))
-                            .toList()
-            );
+            showModel.setTicketPrice(showEntity.getTicketPrice()
+                    .stream().map(passCategoryMapper::entityToModel).toList());
         }
         return showModel;
     }
@@ -93,11 +92,11 @@ public class ShowMapper {
         showEntity.setReserved(showModel.getReserved());
         showEntity.setCapacity(showModel.getCapacity());
         if (showModel.getTicketPrice() != null) {
-            Map<String, Integer> prices = new HashMap<>();
-            showModel.getTicketPrice().forEach(
-                    ticketPrice -> prices.put(ticketPrice.getCategory(), ticketPrice.getPrice())
-            );
-            showEntity.setTicketPrice(prices);
+            List<PassCategoryEntity> categories =
+                    showModel.getTicketPrice()
+                                    .stream().map(passCategoryMapper::modelToEntity)
+                                    .toList();
+            showEntity.setTicketPrice(categories);
         }
         return showEntity;
     }

@@ -2,6 +2,8 @@ package com.bioscope.backend;
 
 import com.bioscope.backend.v01.entities.UserEntity;
 import com.bioscope.backend.v01.models.user.UserModel;
+import com.bioscope.backend.v01.models.user.UserRequestModel;
+import com.bioscope.backend.v01.services.iface.AuthService;
 import com.bioscope.backend.v01.services.iface.BookingService;
 import com.bioscope.backend.v01.services.iface.UserService;
 import org.junit.jupiter.api.Test;
@@ -18,12 +20,14 @@ class BioscopeApplicationTests {
 	}
 
 	@Autowired
-	UserService userService;
-	@Autowired
-	BookingService bookingService;
+	AuthService authService;
+
 
 	@Test
 	void someTest() {
+
+
+		authService.sendVerificationEmail("ecstaticdirac7@justzeus.com");
 
 	}
 }

@@ -9,6 +9,8 @@ public interface AuthService {
 
     UserModel registerUser(UserRequestModel requestModel);
     UserModel userProfileUpdate(UserProfileRequestModel profileRequestModel);
+    void sendVerificationEmail(String email);
+    boolean verifyAccount(String token, String email);
     LoginResponse loginUser(UserRequestModel loginRequest);
     LoginResponse refreshToken(String refreshToken);
     void changePassword(String oldPassword, String newPassword);

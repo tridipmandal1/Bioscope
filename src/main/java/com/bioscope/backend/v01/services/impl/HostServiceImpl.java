@@ -9,6 +9,7 @@ import com.bioscope.backend.v01.enums.SeatStatus;
 import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
 import com.bioscope.backend.v01.mapper.*;
 import com.bioscope.backend.v01.models.MovieModel;
+import com.bioscope.backend.v01.models.PassCategoryModel;
 import com.bioscope.backend.v01.models.SeatViewModel;
 import com.bioscope.backend.v01.models.host.*;
 import com.bioscope.backend.v01.models.user.UserModel;
@@ -47,6 +48,7 @@ public class HostServiceImpl implements HostService {
     private final TicketRepository ticketRepository;
     private final EncryptionUtil encryptionUtil;
     private final SeatingArrangementMapper seatingArrangementMapper;
+    private final PassCategoryMapper passCategoryMapper;
 
 
     public HostServiceImpl(
@@ -61,7 +63,7 @@ public class HostServiceImpl implements HostService {
             MovieMapper movieMapper,
             GenreRepository genreRepository,
             TicketRepository ticketRepository,
-            EncryptionUtil encryptionUtil, SeatingArrangementMapper seatingArrangementMapper){
+            EncryptionUtil encryptionUtil, SeatingArrangementMapper seatingArrangementMapper, PassCategoryMapper passCategoryMapper){
         this.userRepository = userRepository;
         this.showRepository = showRepository;
         this.screenRepository = screenRepository;
@@ -76,6 +78,7 @@ public class HostServiceImpl implements HostService {
         this.ticketRepository = ticketRepository;
         this.encryptionUtil = encryptionUtil;
         this.seatingArrangementMapper = seatingArrangementMapper;
+        this.passCategoryMapper = passCategoryMapper;
     }
 
     @Override
@@ -85,7 +88,7 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    @Transactional // Add this to ensure atomicity
+    @Transactional
     public ScreenModel createScreen(ScreenRequestModel requestModel) {
         if (requestModel == null) {
             throw new RuntimeException("Request model is null");
@@ -326,12 +329,13 @@ public class HostServiceImpl implements HostService {
         showEntity.setUser(host);
         host.getShows().add(showEntity);
 
-        showRepository.save(showEntity); // Cascades to showSeats
+        showRepository.save(showEntity);
 
         return showMapper.entityToModel(showEntity);
     }
 
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public ShowModel createOpenShow(ShowModel showModel) {
         if (showModel == null) {
             throw new RuntimeException("Show model is null");
@@ -341,8 +345,6 @@ public class HostServiceImpl implements HostService {
         ShowEntity showEntity = showMapper.modelToEntity(showModel);
         showEntity.setUser(host);
         showRepository.save(showEntity);
-        host.getShows().add(showEntity);
-        userRepository.save(host);
         return showMapper.entityToModel(showEntity);
     }
 
@@ -367,11 +369,13 @@ public class HostServiceImpl implements HostService {
         showEntity.setShowTime(LocalTime.parse(showModel.getShowTime()));
         showEntity.setShowDuration(Duration.parse(showModel.getShowDuration()));
         if (showModel.getTicketPrice() != null) {
-            Map<String, Integer> prices = new HashMap<>();
-            showModel.getTicketPrice().forEach(
-                    ticketPrice -> prices.put(ticketPrice.getCategory(), ticketPrice.getPrice())
-            );
-            showEntity.setTicketPrice(prices);
+            List<PassCategoryEntity> passes =
+                    showModel.getTicketPrice()
+                            .stream()
+                            .map(passCategoryMapper::modelToEntity)
+                                    .toList();
+            showEntity.getTicketPrice().clear();
+            showEntity.getTicketPrice().addAll(passes);
         }
         showEntity.setBookings(showEntity.getBookings());
 
@@ -419,11 +423,13 @@ public class HostServiceImpl implements HostService {
         showEntity.setShowDuration(Duration.parse(showModel.getShowDuration()));
         showEntity.setCapacity(showModel.getCapacity());
         if (showModel.getTicketPrice() != null) {
-            Map<String, Integer> prices = new HashMap<>();
-            showModel.getTicketPrice().forEach(
-                    ticketPrice -> prices.put(ticketPrice.getCategory(), ticketPrice.getPrice())
-            );
-            showEntity.setTicketPrice(prices);
+            List<PassCategoryEntity> passes =
+                    showModel.getTicketPrice()
+                            .stream()
+                            .map(passCategoryMapper::modelToEntity)
+                            .toList();
+            showEntity.getTicketPrice().clear();
+            showEntity.getTicketPrice().addAll(passes);
         }
         if (showModel.getMovie() != null && showModel.getMovie().getMovieId() != null) {
             MovieEntity movieEntity = movieRepository
@@ -452,7 +458,10 @@ public class HostServiceImpl implements HostService {
         if (shows.isEmpty()) {
             throw new ResourceNotFoundException("No shows found");
         }
-        return shows.stream().map(showMapper::entityToModel).toList();
+        List<ShowEntity> showEntis= shows.stream()
+                .filter(show -> show.getShowDate().isAfter(LocalDate.now()))
+                .toList();
+        return showEntis.stream().map(showMapper::entityToModel).toList();
     }
 
     @Override
@@ -504,6 +513,8 @@ public class HostServiceImpl implements HostService {
                     }
                 });
                 movieEntity.setGenre(genres);
+        movieEntity.setCurrentlyStreaming(true);
+        movieEntity.setRating(Float.valueOf(movieModel.getRating()));
         movieRepository.save(movieEntity);
         return movieMapper.entityToModel(movieEntity);
     }

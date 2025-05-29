@@ -62,7 +62,7 @@ public class UserEntity implements UserDetails {
     private List<ReviewEntity> reviews;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ShowEntity> shows;
+    private List<ShowEntity> shows = new ArrayList<>();
 
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL)
     private List<ScreenEntity> screens;
@@ -94,5 +94,10 @@ public class UserEntity implements UserDetails {
     public List<ShowEntity> getMovieShows() {
         return shows
                 .stream().filter(show -> show.getMovie() != null).toList();
+    }
+
+    public void addShow(ShowEntity show) {
+        this.shows.add(show);
+        show.setUser(this);
     }
 }
