@@ -49,6 +49,7 @@ public class HostServiceImpl implements HostService {
     private final EncryptionUtil encryptionUtil;
     private final SeatingArrangementMapper seatingArrangementMapper;
     private final PassCategoryMapper passCategoryMapper;
+    private final PassCategoryRepository passCategoryRepository;
 
 
     public HostServiceImpl(
@@ -63,7 +64,7 @@ public class HostServiceImpl implements HostService {
             MovieMapper movieMapper,
             GenreRepository genreRepository,
             TicketRepository ticketRepository,
-            EncryptionUtil encryptionUtil, SeatingArrangementMapper seatingArrangementMapper, PassCategoryMapper passCategoryMapper){
+            EncryptionUtil encryptionUtil, SeatingArrangementMapper seatingArrangementMapper, PassCategoryMapper passCategoryMapper, PassCategoryRepository passCategoryRepository){
         this.userRepository = userRepository;
         this.showRepository = showRepository;
         this.screenRepository = screenRepository;
@@ -79,6 +80,7 @@ public class HostServiceImpl implements HostService {
         this.encryptionUtil = encryptionUtil;
         this.seatingArrangementMapper = seatingArrangementMapper;
         this.passCategoryMapper = passCategoryMapper;
+        this.passCategoryRepository = passCategoryRepository;
     }
 
     @Override
@@ -341,8 +343,13 @@ public class HostServiceImpl implements HostService {
             throw new RuntimeException("Show model is null");
         }
 
+        showModel.setMovie(null);
         UserEntity host = this.getUserContext();
         ShowEntity showEntity = showMapper.modelToEntity(showModel);
+        List<PassCategoryEntity> categoryEntities =
+                showEntity.getTicketPrice();
+        categoryEntities.forEach(pass -> pass.setShow(showEntity));
+        passCategoryRepository.saveAll(categoryEntities);
         showEntity.setUser(host);
         showRepository.save(showEntity);
         return showMapper.entityToModel(showEntity);
