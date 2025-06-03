@@ -94,7 +94,7 @@ public class BookingServiceImpl implements BookingService {
                 () -> new ResourceNotFoundException("Show", "ShowId", showId)
         );
 
-        if (!show.getArrangementType().equals(ArrangementType.STANDING)) {
+        if (show.getTicketPrice() == null) {
             throw new IllegalArgumentException("Show is not of type standing");
         }
 
