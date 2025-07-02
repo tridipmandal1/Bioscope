@@ -14,6 +14,7 @@ import com.bioscope.backend.v01.models.SeatViewModel;
 import com.bioscope.backend.v01.models.host.*;
 import com.bioscope.backend.v01.models.user.UserModel;
 import com.bioscope.backend.v01.repos.*;
+import com.bioscope.backend.v01.services.iface.BucketService;
 import com.bioscope.backend.v01.services.iface.HostService;
 import com.bioscope.backend.v01.utils.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -50,6 +52,7 @@ public class HostServiceImpl implements HostService {
     private final SeatingArrangementMapper seatingArrangementMapper;
     private final PassCategoryMapper passCategoryMapper;
     private final PassCategoryRepository passCategoryRepository;
+    private final BucketService bucketService;
 
 
     public HostServiceImpl(
@@ -64,7 +67,7 @@ public class HostServiceImpl implements HostService {
             MovieMapper movieMapper,
             GenreRepository genreRepository,
             TicketRepository ticketRepository,
-            EncryptionUtil encryptionUtil, SeatingArrangementMapper seatingArrangementMapper, PassCategoryMapper passCategoryMapper, PassCategoryRepository passCategoryRepository){
+            EncryptionUtil encryptionUtil, SeatingArrangementMapper seatingArrangementMapper, PassCategoryMapper passCategoryMapper, PassCategoryRepository passCategoryRepository, BucketService bucketService){
         this.userRepository = userRepository;
         this.showRepository = showRepository;
         this.screenRepository = screenRepository;
@@ -81,6 +84,7 @@ public class HostServiceImpl implements HostService {
         this.seatingArrangementMapper = seatingArrangementMapper;
         this.passCategoryMapper = passCategoryMapper;
         this.passCategoryRepository = passCategoryRepository;
+        this.bucketService = bucketService;
     }
 
     @Override
@@ -647,6 +651,14 @@ public class HostServiceImpl implements HostService {
                 ticket.getCategory(),
                 ticket.getAllowedPersons()
         );
+    }
+
+    @Override
+    public String uploadImage(MultipartFile image) {
+        if(image == null || image.isEmpty()) {
+            throw new RuntimeException("Image file is null or empty");
+        }
+        return bucketService.uploadFile(image);
     }
 
     private UserEntity getUserContext() {

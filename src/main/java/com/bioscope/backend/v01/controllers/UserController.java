@@ -91,7 +91,7 @@ public class UserController {
 
     @PostMapping(value = "/review/{movieId}", produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MovieModel> addReview(
+    public ResponseEntity<ReviewModel> addReview(
             @PathVariable String movieId,
             @RequestBody ReviewModel reviewModel) {
         return new ResponseEntity<>(userService

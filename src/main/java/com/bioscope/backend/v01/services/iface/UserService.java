@@ -19,7 +19,7 @@ public interface UserService {
     List<UserModel> getHostsByLocation(String location);
     List<ShowModel> showsByHostWithMovie(String hostId, String movieName);
     SeatingArrangementModel getSeatingArrangement(String showId);
-    MovieModel addReview(String movieId, ReviewModel reviewModel);
+    ReviewModel addReview(String movieId, ReviewModel reviewModel);
     List<MovieModel> getMoviesByGenre(String genre);
      SearchResult searchAnything(String query, String location);
 

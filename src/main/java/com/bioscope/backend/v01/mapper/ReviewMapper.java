@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class ReviewMapper {
 
 
-    ReviewModel entityToModel (ReviewEntity entity) {
+    public ReviewModel entityToModel (ReviewEntity entity) {
         if (entity == null) {
             return null;
         }

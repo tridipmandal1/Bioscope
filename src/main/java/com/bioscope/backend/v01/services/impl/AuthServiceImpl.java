@@ -19,6 +19,7 @@ import com.bioscope.backend.v01.sender.EmailSender;
 import com.bioscope.backend.v01.services.iface.AuthService;
 import com.bioscope.backend.v01.services.iface.TokenBlacklistService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,6 +41,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final GenreRepository genreRepository;
     private final EmailSender emailSender;
+
+    @Value("${api.uri}")
+    private String api_url;
+
+    @Value("${ui.uri}")
+    private String ui_url;
 
     public AuthServiceImpl(
             UserRepository userRepository,
@@ -88,6 +95,7 @@ public class AuthServiceImpl implements AuthService {
                 genres.add(genreRepository.findByGenreName(interest).get());
             }
         });
+        genreRepository.saveAll(genres);
         user.setInterests(genres);
         userRepository.save(user);
         return userMapper.entityToModel(user);
@@ -101,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
         emailModel.setSubject("Verify you Bioscope account");
         emailModel.setTemplate("verify-account");
         final String verificationLink =
-                "http://localhost:9099/v01/auth/verify-account?token=" + token + "&email=" + email;
+               api_url + "/v01/auth/verify-account?token=" + token + "&email=" + email;
 
         emailModel.setVariables(Map.of(
             "email", email,
@@ -206,6 +214,54 @@ public class AuthServiceImpl implements AuthService {
         tokenBlacklistService.addTokenToBlacklist(refreshToken);
     }
 
+    @Override
+    public void forgotPasswordEmail(String email) {
+
+        UserEntity user = userRepository.findByEmail(email).orElseThrow(
+                () -> new ResourceNotFoundException("User", "email", email)
+        );
+
+        String token = jwtProvider.createVerificationToken(email);
+        EmailModel emailModel = new EmailModel();
+        emailModel.setTo(email);
+        emailModel.setSubject("Reset your Bioscope password");
+        emailModel.setTemplate("reset-password");
+        final String verificationLink =
+               ui_url + "/password-change/reset?email=" + email + "&token=" + token;
+
+        var name = user.getName() == null ? "User" : user.getName();
+        emailModel.setVariables(Map.of(
+                "userName", name,
+                "resetPasswordUrl", verificationLink
+        ));
+
+        try {
+            emailSender.sendEmail(emailModel);
+            log.info("Password Reset email sent to {}, link: {}", email, verificationLink);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to {}: {}", email, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean resetPassword(String token, String email, String newPassword) {
+        if(!jwtProvider.extractUsernameFromToken(token).equals(email)){
+            throw new InvalidCredentialsException("Email", "Invalid");
+        }
+
+        if(jwtProvider.validateToken(token)){
+            UserEntity user = userRepository.findByEmail(email).orElseThrow(
+                    () -> new ResourceNotFoundException("User", "email", email)
+            );
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return true;
+        }
+        sendVerificationEmail(email);
+        return false;
+    }
+
     private  UserEntity getUserContext() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
@@ -224,5 +280,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("Failed to fetch user: " + username));
 
     }
+
+
 
 }

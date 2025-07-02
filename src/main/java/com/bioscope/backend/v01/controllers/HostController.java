@@ -211,4 +211,10 @@ public class HostController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile image) {
+            String imageUrl = hostService.uploadImage(image);
+            return new ResponseEntity<>(imageUrl, HttpStatus.OK);
+    }
 }

@@ -4,6 +4,7 @@ import com.bioscope.backend.v01.models.MovieModel;
 import com.bioscope.backend.v01.models.SeatViewModel;
 import com.bioscope.backend.v01.models.host.*;
 import com.bioscope.backend.v01.models.user.UserModel;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -32,5 +33,6 @@ public interface HostService {
     void deleteMovie(String movieId);
     List<SeatViewModel> verifyTicket(String token);
     SeatViewModel verifyEntryPass(String token);
+    String uploadImage(MultipartFile image);
 
 }

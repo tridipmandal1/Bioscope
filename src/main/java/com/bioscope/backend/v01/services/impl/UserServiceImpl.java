@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -39,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final SeatingArrangementMapper seatingArrangementMapper;
     private final ReviewMapper reviewMapper;
     private final ShowSeatMapper showSeatMapper;
+    private final ReviewRepository reviewRepository;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -50,8 +52,8 @@ public class UserServiceImpl implements UserService {
             MovieMapper movieMapper,
             SeatingArrangementMapper seatingArrangementMapper,
             ReviewMapper reviewMapper,
-            ShowSeatMapper showSeatMapper
-           ){
+            ShowSeatMapper showSeatMapper,
+            ReviewRepository reviewRepository){
         this.userRepository = userRepository;
         this.showRepository = showRepository;
         this.movieRepository = movieRepository;
@@ -62,6 +64,7 @@ public class UserServiceImpl implements UserService {
         this.seatingArrangementMapper = seatingArrangementMapper;
         this.reviewMapper = reviewMapper;
         this.showSeatMapper = showSeatMapper;
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
@@ -178,7 +181,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public MovieModel addReview(String movieId, ReviewModel reviewModel) {
+    public ReviewModel addReview(String movieId, ReviewModel reviewModel) {
         if (movieId == null || reviewModel == null) {
             throw new IllegalArgumentException("MovieId and ReviewModel must not be null");
         }
@@ -192,12 +195,9 @@ public class UserServiceImpl implements UserService {
         List<ReviewEntity> reviews = movie.getReviews();
         reviews.add(entity);
         movie.setReviews(reviews);
-        List<ReviewEntity> userReviews = user.getReviews();
-        userReviews.add(entity);
-        user.setReviews(userReviews);
-        userRepository.save(user);
+        reviewRepository.saveAll(reviews);
         movieRepository.save(movie);
-        return movieMapper.entityToModel(movie);
+        return reviewMapper.entityToModel(entity);
     }
 
     @Override

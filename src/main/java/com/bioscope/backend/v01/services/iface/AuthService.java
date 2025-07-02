@@ -16,4 +16,6 @@ public interface AuthService {
     void changePassword(String oldPassword, String newPassword);
     void deleteUser(String password);
     void logoutUser(String token, String refreshToken);
+    void forgotPasswordEmail(String email);
+    boolean resetPassword(String token, String email, String newPassword);
 }

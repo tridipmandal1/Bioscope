@@ -61,17 +61,5 @@ public class MovieEntity {
     @OneToMany(mappedBy = "movie")
     private List<ShowEntity> show;
 
-    public Float calculateRating() {
-        Double total = 0.0;
-        if (reviews != null) {
-            for (ReviewEntity review : reviews) {
-                total += review.getRating();
-            }
-
-            return (float) (total / reviews.size());
-        }
-
-         return 0F;
-    }
 
 }
