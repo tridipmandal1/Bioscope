@@ -9,6 +9,8 @@ import com.bioscope.backend.v01.repos.ShowRepository;
 import com.bioscope.backend.v01.repos.ShowSeatRepository;
 import com.bioscope.backend.v01.repos.TicketRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,7 +25,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@Slf4j
 public class JpaRedisSync {
 
     private final ShowSeatRepository showSeatRepository;
@@ -31,6 +32,8 @@ public class JpaRedisSync {
     private final ShowRepository showRepository;
     private final TicketRepository ticketRepository;
     private final PassCategoryRepository passCategoryRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(JpaRedisSync.class);
 
     public JpaRedisSync(ShowSeatRepository showSeatRepository,
                         RedisTemplate<String, String> redisTemplate,

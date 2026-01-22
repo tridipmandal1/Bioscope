@@ -12,6 +12,7 @@ import com.bioscope.backend.v01.models.user.SearchResult;
 import com.bioscope.backend.v01.models.user.UserModel;
 import com.bioscope.backend.v01.repos.*;
 import com.bioscope.backend.v01.services.iface.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -82,7 +84,7 @@ public class UserServiceImpl implements UserService {
         List<ShowEntity>  openShows =
                 shows.stream().filter(show -> show.getMovie() == null).toList();
         if (openShows.isEmpty()) {
-            throw new ResourceNotFoundException("No shows are currently trending in your location");
+            return List.of();
         }
         return openShows.stream().map(showMapper::entityToModel).toList();
     }
@@ -91,7 +93,7 @@ public class UserServiceImpl implements UserService {
     public List<MovieModel> trendingMovies() {
         List<MovieEntity> movies = movieRepository.trendingMovies();
         if (movies.isEmpty()) {
-            throw new ResourceNotFoundException("No movies are currently trending");
+            return  List.of();
         }
         return movies.stream().map(movieMapper::entityToModel).toList();
     }
@@ -246,7 +248,7 @@ public class UserServiceImpl implements UserService {
         }
         String username;
         Object principal = authentication.getPrincipal();
-        System.out.println("Principal: " + principal);
+        log.info("Principal: " + principal);
         if (principal instanceof UserDetails) {
             username = ((UserDetails) principal).getUsername();
         } else {

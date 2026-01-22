@@ -11,8 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
 import java.util.Date;
+import java.util.UUID;
 
-@Service
+
 @Slf4j
 public class BucketServiceImpl implements BucketService {
 
@@ -37,7 +38,7 @@ public class BucketServiceImpl implements BucketService {
 //        if (file.getSize() > MAX_SIZE) {
 //            throw new RuntimeException("File size exceeds the limit");
 //        }
-        String filename = file.getOriginalFilename()+ ".png";
+        String filename = UUID.randomUUID() + "-" + file.getOriginalFilename();
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
         try {

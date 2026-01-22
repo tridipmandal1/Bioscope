@@ -4,5 +4,4 @@ public enum PassageAlignment {
     LEFT,
     RIGHT,
     CENTER
-
 }

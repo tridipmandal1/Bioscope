@@ -2,8 +2,10 @@ package com.bioscope.backend.v01.handler;
 
 import com.bioscope.backend.v01.exceptions.AlreadyExistsException;
 import com.bioscope.backend.v01.exceptions.ResourceNotFoundException;
+import com.bioscope.backend.v01.exceptions.TokenCycleFailedException;
 import com.bioscope.backend.v01.models.ApiResponse;
 import com.razorpay.RazorpayException;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ValidationException;
 import org.json.JSONException;
@@ -63,6 +65,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ApiResponse> expiredJwtHandler(ExpiredJwtException exception) {
+        ApiResponse apiResponse =
+                ApiResponse.builder()
+                        .message(exception.getMessage())
+                        .status(false)
+                        .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(TokenCycleFailedException.class)
+    public ResponseEntity<ApiResponse> tokenCycleHandler(TokenCycleFailedException exception) {
+        ApiResponse apiResponse =
+                ApiResponse.builder()
+                        .message(exception.getMessage())
+                        .status(false)
+                        .build();
+        return new ResponseEntity<>(apiResponse, HttpStatus.NOT_ACCEPTABLE);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse> runtimeExceptionHandler(RuntimeException runtimeException) {
         String message = runtimeException.getMessage();
@@ -92,7 +114,6 @@ public class GlobalExceptionHandler {
 
             return new ResponseEntity<>(apiResponse, HttpStatus.UNAUTHORIZED);
         }
-
         if (exception instanceof DateTimeException) {
             ApiResponse apiResponse = ApiResponse.builder()
                     .message("Invalid date or time format")
@@ -112,7 +133,7 @@ public class GlobalExceptionHandler {
         }
         if (exception instanceof SignatureException) {
             ApiResponse apiResponse = ApiResponse.builder()
-                    .message("Invalid token")
+                    .message("Access Denied")
                     .status(false)
                     .build();
 
@@ -128,18 +149,18 @@ public class GlobalExceptionHandler {
         }
         if (exception instanceof RazorpayException) {
             apiResponse = ApiResponse.builder()
-                    .message("Error in payment gateway")
+                    .message("Error initiating payment")
                     .status(false)
                     .build();
         } else if (exception instanceof JSONException) {
             apiResponse = ApiResponse.builder()
-                    .message("Error creating json object")
+                    .message("Server can't process this data")
                     .status(false)
                     .build();
         }
         else {
             apiResponse = ApiResponse.builder()
-                    .message(message)
+                    .message("Internal server error")
                     .status(false)
                     .build();
         }

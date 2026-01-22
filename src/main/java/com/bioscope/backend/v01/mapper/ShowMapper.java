@@ -7,6 +7,8 @@ import com.bioscope.backend.v01.enums.ArrangementType;
 import com.bioscope.backend.v01.models.TicketPrice;
 import com.bioscope.backend.v01.models.host.*;
 import com.bioscope.backend.v01.models.host.ShowSeatModel;
+import com.bioscope.backend.v01.services.iface.BucketService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -22,6 +24,9 @@ public class ShowMapper {
     private final MovieMapper movieMapper;
     private final ShowSeatMapper showSeatMapper;
     private final PassCategoryMapper passCategoryMapper;
+
+    @Value("${r2.bucket.public.url}")
+    private String bucket_public;
 
     public ShowMapper (MovieMapper movieMapper, ShowSeatMapper showSeatMapper,
                        PassCategoryMapper passCategoryMapper) {
@@ -46,7 +51,10 @@ public class ShowMapper {
             showModel.setArrangementType(showEntity.getArrangementType().name());
         }
         showModel.setShowType(showEntity.getShowType());
-        showModel.setPoster(showEntity.getPoster());
+        if(showEntity.getPoster().isBlank()) {
+            showModel.setPoster( bucket_public + "/"+
+                    showEntity.getPoster());
+        }
         showModel.setLocation(showEntity.getLocation());
         showModel.setShowDescription(showEntity.getShowDescription());
         showModel.setShowDate(showEntity.getShowDate().toString());

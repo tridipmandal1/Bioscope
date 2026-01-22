@@ -157,29 +157,7 @@ public class HostController {
                 new ResponseEntity<>(hostService.getMovie(movieId), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/movie", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MovieModel> createMovie(@RequestBody MovieModel movieModel) {
-        return
-                new ResponseEntity<>(hostService.createMovie(movieModel), HttpStatus.CREATED);
-    }
 
-    @PutMapping(value = "/movie/{movieId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MovieModel> updateMovie(
-            @PathVariable String movieId,
-            @RequestBody MovieModel movieModel) {
-        return
-                new ResponseEntity<>(hostService.updateMovie(movieId, movieModel), HttpStatus.OK);
-    }
-
-    @DeleteMapping(value = "/movie/{movieId}")
-    public ResponseEntity<?> deleteMovie(@PathVariable String movieId) {
-        hostService.deleteMovie(movieId);
-        var response = ApiResponse.builder()
-                .status(true)
-                .message("Successfully deleted")
-                .build();
-        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
-    }
 
     @PostMapping(value = "/verify-ticket",consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> verifyTicket(@RequestParam("file") MultipartFile file) {

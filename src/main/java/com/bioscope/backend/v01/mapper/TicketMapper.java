@@ -4,6 +4,7 @@ package com.bioscope.backend.v01.mapper;
 import com.bioscope.backend.v01.entities.TicketEntity;
 import com.bioscope.backend.v01.models.user.TicketModel;
 import com.bioscope.backend.v01.services.iface.BucketService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,11 +12,12 @@ public class TicketMapper {
 
 
     private final ShowSeatMapper showSeatMapper;
-    private final BucketService bucketService;
 
-    public TicketMapper(ShowSeatMapper showSeatMapper, BucketService bucketService) {
+    @Value("${r2.bucket.public.url}")
+    private String bucket_public;
+
+    public TicketMapper(ShowSeatMapper showSeatMapper) {
         this.showSeatMapper = showSeatMapper;
-        this.bucketService = bucketService;
     }
 
     public TicketModel entityToModel(TicketEntity entity) {
@@ -38,7 +40,9 @@ public class TicketMapper {
         if (entity.getShowSeats() != null) {
             model.setSeats(entity.getShowSeats().stream().map(showSeatMapper::entityToModel).toList());
         }
-        model.setQrCode(bucketService.preSignedUrl(entity.getTicketQRCode()));
+        model.setQrCode(
+                bucket_public + "/" +
+                entity.getTicketQRCode());
         return model;
     }
 

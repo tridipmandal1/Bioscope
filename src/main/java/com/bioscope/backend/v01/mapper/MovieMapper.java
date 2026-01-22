@@ -3,6 +3,7 @@ package com.bioscope.backend.v01.mapper;
 import com.bioscope.backend.v01.entities.GenreEntity;
 import com.bioscope.backend.v01.entities.MovieEntity;
 import com.bioscope.backend.v01.models.MovieModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,8 @@ import java.util.stream.Collectors;
 public class MovieMapper {
 
     private final ReviewMapper reviewMapper;
+    @Value("${r2.bucket.public.url}")
+    private String bucket_public;
 
     public MovieMapper(ReviewMapper reviewMapper) {
         this.reviewMapper = reviewMapper;
@@ -37,7 +40,11 @@ public class MovieMapper {
                             .map(reviewMapper :: entityToModel).collect(Collectors.toList())
             );
         }
-        movieModel.setPoster(movieEntity.getPoster());
+        if (!movieEntity.getPoster().isEmpty()) {
+            movieModel.setPoster(
+                    bucket_public + "/" + movieEntity.getPoster()
+            );
+        }
         movieModel.setCurrentlyStreaming(movieEntity.isCurrentlyStreaming());
         return movieModel;
     }

@@ -28,9 +28,6 @@ public interface HostService {
     void deleteShow(String showId);
     List<MovieModel> getAllMovies();
     MovieModel getMovie(String movieId);
-    MovieModel createMovie(MovieModel movieModel);
-    MovieModel updateMovie(String movieId, MovieModel movieModel);
-    void deleteMovie(String movieId);
     List<SeatViewModel> verifyTicket(String token);
     SeatViewModel verifyEntryPass(String token);
     String uploadImage(MultipartFile image);

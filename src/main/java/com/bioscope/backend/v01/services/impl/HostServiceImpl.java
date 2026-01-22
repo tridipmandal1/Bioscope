@@ -504,87 +504,7 @@ public class HostServiceImpl implements HostService {
         return movieMapper.entityToModel(movieEntity);
     }
 
-    @Override
-    public MovieModel createMovie(MovieModel movieModel) {
-        if (movieModel == null) {
-            throw new RuntimeException("Movie model is null");
-        }
 
-        MovieEntity movieEntity = movieMapper.modelToEntity(movieModel);
-        List<GenreEntity> genres = new ArrayList<>();
-                movieModel.getGenres().forEach(genre -> {
-                    Optional<GenreEntity> g = genreRepository.findByGenreName(genre);
-                    if (g.isPresent()) {
-                        genres.add(g.get());
-                    }else {
-                        GenreEntity genreEntity = new GenreEntity();
-                        genreEntity.setGenreName(genre);
-                        genreRepository.save(genreEntity);
-                        genres.add(genreEntity);
-                    }
-                });
-                movieEntity.setGenre(genres);
-        movieEntity.setCurrentlyStreaming(true);
-        movieEntity.setRating(Float.valueOf(movieModel.getRating()));
-        movieRepository.save(movieEntity);
-        return movieMapper.entityToModel(movieEntity);
-    }
-
-    @Override
-    public MovieModel updateMovie(String movieId, MovieModel movieModel) {
-        if (movieId == null || movieModel == null) {
-            throw new RuntimeException("Movie id or model is null");
-        }
-        MovieEntity movieEntity =
-                movieRepository.findById(UUID.fromString(movieId)).orElseThrow(
-                        () -> new ResourceNotFoundException("Movie", "id", movieId)
-                );
-
-        movieEntity.setTitle(movieModel.getTitle());
-        movieEntity.setDescription(movieModel.getDescription());
-        movieEntity.setReleaseDate(movieModel.getReleaseDate());
-        movieEntity.setDuration(movieModel.getDuration());
-        movieEntity.setLanguage(movieModel.getLanguage());
-        movieEntity.setPoster(movieModel.getPoster());
-        movieEntity.setTrailerUrl(movieModel.getTrailerUrl());
-        movieEntity.setCasts(movieModel.getCasts());
-        movieEntity.setCurrentlyStreaming(movieModel.isCurrentlyStreaming());
-
-        List<GenreEntity> genres = new ArrayList<>();
-
-        movieModel.getGenres().forEach(genre -> {
-            if(!genreRepository.existsByGenreName(genre)){
-                GenreEntity newGenre = new GenreEntity();
-                newGenre.setGenreName(genre);
-                newGenre.addMovie(movieEntity);
-                genres.add(newGenre);
-            }else if (genreRepository.findByGenreName(genre).isPresent()) {
-                GenreEntity genre1 = genreRepository.findByGenreName(genre).get();
-                genre1.addMovie(movieEntity);
-                genres.add(genre1);
-            }
-        });
-        genreRepository.saveAll(genres);
-        movieEntity.setGenre(genres);
-        movieRepository.save(movieEntity);
-
-        return movieMapper.entityToModel(movieEntity);
-    }
-
-    @Override
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void deleteMovie(String movieId) {
-        if (movieId == null) {
-            throw new RuntimeException("Movie id is null");
-        }
-
-        MovieEntity movie =
-                movieRepository.findById(UUID.fromString(movieId)).orElseThrow(
-                        () -> new ResourceNotFoundException("Movie", "id", movieId)
-                );
-
-        movieRepository.deleteById(UUID.fromString(movieId));
-    }
 
     @Override
     public List<SeatViewModel> verifyTicket(String token) {
@@ -668,7 +588,7 @@ public class HostServiceImpl implements HostService {
         }
         String username;
         Object principal = authentication.getPrincipal();
-        System.out.println("Principal: " + principal);
+        log.info("Principal: " + principal);
         if (principal instanceof UserDetails) {
             username = ((UserDetails) principal).getUsername();
         } else {

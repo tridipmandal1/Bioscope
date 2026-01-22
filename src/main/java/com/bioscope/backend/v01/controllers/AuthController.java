@@ -1,22 +1,29 @@
 package com.bioscope.backend.v01.controllers;
 
 import com.bioscope.backend.v01.enums.Roles;
+import com.bioscope.backend.v01.exceptions.TokenCycleFailedException;
 import com.bioscope.backend.v01.models.ApiResponse;
 import com.bioscope.backend.v01.models.LoginResponse;
 import com.bioscope.backend.v01.models.user.UserModel;
 import com.bioscope.backend.v01.models.user.UserProfileRequestModel;
 import com.bioscope.backend.v01.models.user.UserRequestModel;
 import com.bioscope.backend.v01.repos.UserRepository;
-import com.bioscope.backend.v01.security.JwtProvider;
 import com.bioscope.backend.v01.services.iface.AuthService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.web.servlet.server.Session;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.time.Duration;
+import java.util.Arrays;
+
+@Slf4j
 @RestController
 @RequestMapping("/v01/auth")
 public class AuthController {
@@ -41,9 +48,24 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> userLogin(@RequestBody @Valid UserRequestModel loginRequest) {
-        LoginResponse loginResponse = authService.loginUser(loginRequest);
-        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+    public ResponseEntity<LoginResponse> userLogin(@RequestBody @Valid UserRequestModel loginRequest,
+                                                   HttpServletResponse response) {
+        LoginResponse loginResponse
+                = authService.loginUser(loginRequest);
+        ResponseCookie refreshCookie =
+                ResponseCookie.from("refresh_token", loginResponse.getRefreshToken())
+                        .httpOnly(true)
+                        .sameSite("Lax")
+                        .secure(false)
+                        .path("/")
+                        .maxAge(Duration.ofDays(7))
+                        .build();
+        loginResponse.setRefreshToken("Lol!");
+        response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        return
+                 ResponseEntity
+                        .ok(loginResponse);
     }
 
     @PostMapping("/update")
@@ -53,9 +75,22 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refreshToken(@RequestParam String refreshToken){
-        LoginResponse loginResponse = authService.refreshToken(refreshToken);
-        return new ResponseEntity<>(loginResponse, HttpStatus.OK);
+    public ResponseEntity<LoginResponse> refreshToken(HttpServletRequest request,
+                                                      HttpServletResponse response){
+        String receivedToken = extractRefreshToken(request);
+
+            LoginResponse loginResponse = authService.refreshToken(receivedToken);
+            ResponseCookie refreshCookie =
+                    ResponseCookie.from("refresh_token", loginResponse.getRefreshToken())
+                            .httpOnly(true)
+                            .sameSite("Lax")
+                            .secure(false)
+                            .path("/")
+                            .maxAge(Duration.ofDays(7))
+                            .build();
+            loginResponse.setRefreshToken("Lol!");
+            response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+            return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
 
     @RequestMapping("/verify-account")
@@ -70,8 +105,23 @@ public class AuthController {
         return view;
     }
     @PostMapping("/logout")
-    public ResponseEntity<String> logoutUser(@RequestParam String token, @RequestParam String refreshToken){
-        authService.logoutUser(token, refreshToken);
+    public ResponseEntity<String> logoutUser(HttpServletRequest request,
+                                             HttpServletResponse response){
+        log.info("Trying to logout the user");
+
+        String refreshToken = extractRefreshToken(request);
+        authService.logoutUser(refreshToken);
+        ResponseCookie deleteCookie =
+                ResponseCookie.from("refresh_token", "")
+                        .httpOnly(true)
+                        .secure(false)
+                        .sameSite("Lax")
+                        .path("/")
+                        .maxAge(0)
+                        .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
         return new ResponseEntity<>("Logged out", HttpStatus.OK);
     }
 
@@ -122,4 +172,16 @@ public class AuthController {
         }
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
+
+    private String extractRefreshToken(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+
+        for (Cookie cookie : request.getCookies()) {
+            if ("refresh_token".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
 }

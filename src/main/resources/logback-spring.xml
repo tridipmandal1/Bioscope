@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ANSI color support -->
+    <conversionRule conversionWord="clr"
+                    converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+
+    <property name="PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss}){faint}
+               %clr(%-5level){
+                   ERROR=red,
+                   WARN=yellow,
+                   INFO=green,
+                   DEBUG=cyan,
+                   TRACE=blue
+               }
+               %clr([%thread]){magenta}
+               %clr(%logger{36}){blue}
+               - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

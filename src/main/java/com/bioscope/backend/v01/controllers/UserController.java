@@ -37,6 +37,14 @@ public class UserController {
         this.hostService = hostService;
     }
 
+    @GetMapping(value = "/me")
+    public ResponseEntity<ApiResponse> recMe() {
+        return
+                ResponseEntity.ok()
+                        .body(ApiResponse.builder()
+                                .status(true).message("Logged in user").build());
+
+    }
     @GetMapping(value = "/trending-shows", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ShowModel>> trendingShows(@RequestParam String location) {
         return new ResponseEntity<>(userService.trendingShows(location), HttpStatus.OK);
@@ -47,7 +55,8 @@ public class UserController {
         return new ResponseEntity<>(userService.trendingMovies(), HttpStatus.OK);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+
+    @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserModel> getUserProfile() {
         return new ResponseEntity<>(userService.getUserProfile(), HttpStatus.OK);
     }

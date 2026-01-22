@@ -70,6 +70,9 @@ public class UserEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketEntity> bookedTickets;
 
+    @OneToMany(mappedBy = "user")
+    private List<RefreshTokenEntity> refreshTokens;
+
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 //    private List<PaymentHistoryEntity> paymentHistory;
 
