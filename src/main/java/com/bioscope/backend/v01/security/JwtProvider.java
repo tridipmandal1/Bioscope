@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -72,19 +73,18 @@ public class JwtProvider {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] secretBytes = Decoders.BASE64.decode(SECRET);
         return Keys.hmacShaKeyFor(secretBytes);
     }
 
     private Claims extractAllClaims(String token) {
 
-        return Jwts
-                .parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+            return Jwts.parser()
+                    .verifyWith((SecretKey) getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
     }
 
     private String buildToken(UserDetails userDetails, long expiration) {
@@ -112,8 +112,8 @@ public class JwtProvider {
 
     public UsernamePasswordAuthenticationToken authenticationToken(String token, UserDetails userDetails) {
 
-        final JwtParser jwtParser = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        final JwtParser jwtParser = Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build();
         final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
         final Claims claims = claimsJws.getBody();

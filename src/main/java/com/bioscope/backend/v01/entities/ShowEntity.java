@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.VarcharUUIDJdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharUUIDJdbcType;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.Duration;

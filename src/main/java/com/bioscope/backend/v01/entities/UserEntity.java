@@ -4,7 +4,7 @@ import com.bioscope.backend.v01.enums.Roles;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.VarcharUUIDJdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharUUIDJdbcType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,7 +1,6 @@
 package com.bioscope.backend.v01.controllers;
 
 import com.bioscope.backend.v01.enums.Roles;
-import com.bioscope.backend.v01.exceptions.TokenCycleFailedException;
 import com.bioscope.backend.v01.models.ApiResponse;
 import com.bioscope.backend.v01.models.LoginResponse;
 import com.bioscope.backend.v01.models.user.UserModel;
@@ -15,13 +14,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.time.Duration;
-import java.util.Arrays;
 
 @Slf4j
 @RestController

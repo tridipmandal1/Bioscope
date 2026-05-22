@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.VarcharUUIDJdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharUUIDJdbcType;
 
 import java.util.List;
 import java.util.UUID;

@@ -4,7 +4,7 @@ package com.bioscope.backend.v01.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.VarcharUUIDJdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharUUIDJdbcType;
 
 import java.util.List;
 import java.util.Set;

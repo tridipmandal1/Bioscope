@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.VarcharUUIDJdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharUUIDJdbcType;
 
 import java.util.Date;
 import java.util.UUID;

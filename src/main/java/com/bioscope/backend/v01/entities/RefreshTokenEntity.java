@@ -5,7 +5,7 @@ import com.bioscope.backend.v01.enums.ClientType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.VarcharUUIDJdbcType;
+import org.hibernate.type.descriptor.jdbc.VarcharUUIDJdbcType;
 
 import java.time.Instant;
 import java.util.UUID;
